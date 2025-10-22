@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.immich-wallpaper" path="/org/gnome/shell/extensions/immich-wallpaper/">
+    <key name="server-url" type="s">
+      <default>''</default>
+      <summary>Immich Server URL</summary>
+      <description>The URL of your Immich server (e.g., https://immich.example.com)</description>
+    </key>
+    <key name="email" type="s">
+      <default>''</default>
+      <summary>Email</summary>
+      <description>Email address for Immich authentication</description>
+    </key>
+    <key name="password" type="s">
+      <default>''</default>
+      <summary>Password</summary>
+      <description>Password for Immich authentication</description>
+    </key>
+    <key name="change-interval" type="i">
+      <default>1800</default>
+      <range min="60" max="86400"/>
+      <summary>Change Interval</summary>
+      <description>Time in seconds between wallpaper changes (default: 1800 = 30 minutes)</description>
+    </key>
+    <key name="album-id" type="s">
+      <default>''</default>
+      <summary>Album ID</summary>
+      <description>ID of the album to use for wallpapers (empty = all albums)</description>
+    </key>
+    <key name="picture-options" type="s">
+      <default>'zoom'</default>
+      <summary>Picture Options</summary>
+      <description>How to display the wallpaper: zoom, centered, scaled, stretched, spanned, wallpaper</description>
+    </key>
+  </schema>
+</schemalist>

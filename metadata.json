@@ -1,0 +1,18 @@
+{
+  "name": "Immich Wallpaper",
+  "description": "Sets desktop wallpaper from Immich server photos",
+  "uuid": "immich-wallpaper@oscar.extensions.gnome-shell",
+  "shell-version": [
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49"
+  ],
+  "version": 1,
+  "url": "https://github.com/oscar/immich-wallpaper",
+  "settings-schema": "org.gnome.shell.extensions.immich-wallpaper"
+}
