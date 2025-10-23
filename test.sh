@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script para probar y verificar la extensión Immich Wallpaper
+# Script para verificar el estado de la extensión
 
-EXTENSION_NAME="immich-wallpaper@oscar.extensions.gnome-shell"
+EXTENSION_NAME="immich-wallpaper@nokichan.github.io"
 
 echo "🔍 Estado de la extensión Immich Wallpaper"
 echo "=========================================="

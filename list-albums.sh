@@ -57,6 +57,7 @@ done
 echo ""
 echo "📝 Para usar un álbum específico:"
 echo "   1. Copia el ID del álbum que quieras usar"
-echo "   2. Abre las preferencias: gnome-extensions prefs immich-wallpaper@oscar.extensions.gnome-shell"
+echo "   echo ""
+echo "   2. Abre las preferencias: gnome-extensions prefs immich-wallpaper@nokichan.github.io""
 echo "   3. Pega el ID en el campo 'Album ID'"
 echo "   4. Deja el campo vacío para usar todas las fotos"

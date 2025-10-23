@@ -1,17 +1,23 @@
+# Build directory
+build/
+
+# Compiled translation files
+*.mo
+po/*.mo
+
 # Compiled schemas
 schemas/gschemas.compiled
 
-# Editor files
+# Cache and temporary files
 *~
 *.swp
 *.swo
+.DS_Store
+
+# IDE specific files
 .vscode/
 .idea/
+*.iml
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# Backup files
-*.bak
-*.backup
+# User-specific cache
+.cache/

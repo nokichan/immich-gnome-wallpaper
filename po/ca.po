@@ -1,0 +1,96 @@
+# Catalan translation for Immich Wallpaper GNOME Shell extension
+# Copyright (C) 2025
+# This file is distributed under the same license as the immich-wallpaper package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: immich-wallpaper\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-23 12:00+0000\n"
+"PO-Revision-Date: 2025-10-23 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Catalan\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: prefs.js
+msgid "Connection Settings"
+msgstr "Configuració de Connexió"
+
+#: prefs.js
+msgid "Configure your Immich server connection"
+msgstr "Configura la connexió amb el teu servidor Immich"
+
+#: prefs.js
+msgid "Server URL"
+msgstr "URL del Servidor"
+
+#: prefs.js
+msgid "Email"
+msgstr "Correu Electrònic"
+
+#: prefs.js
+msgid "Password"
+msgstr "Contrasenya"
+
+#: prefs.js
+msgid "Wallpaper Settings"
+msgstr "Configuració del Fons de Pantalla"
+
+#: prefs.js
+msgid "Configure wallpaper rotation behavior"
+msgstr "Configura el comportament de la rotació del fons"
+
+#: prefs.js
+msgid "Change Interval (seconds)"
+msgstr "Temps de Interval de Canvi (segons)"
+
+#: prefs.js
+msgid "Time between wallpaper changes"
+msgstr "Temps entre canvis de fons"
+
+#: prefs.js
+msgid "Picture Options"
+msgstr "Opcions d'Imatge"
+
+#: prefs.js
+msgid "How to display the wallpaper"
+msgstr "Com mostrar el fons de pantalla"
+
+#: prefs.js
+msgid "Album Selection"
+msgstr "Selecció d'Àlbum"
+
+#: prefs.js
+msgid "Choose which album to use for wallpapers"
+msgstr "Tria quin àlbum utilitzar per als fons"
+
+#: prefs.js
+msgid "Select Album"
+msgstr "Seleccionar Àlbum"
+
+#: prefs.js
+msgid "Loading albums..."
+msgstr "Carregant àlbums..."
+
+#: prefs.js
+msgid "All Photos (no filter)"
+msgstr "Totes les Fotos (sense filtre)"
+
+#: prefs.js
+msgid "Please configure server connection first"
+msgstr "Si us plau configura primer la connexió al servidor"
+
+#: prefs.js
+msgid "Authentication failed. Check your credentials."
+msgstr "Error d'autenticació. Verifica les teves credencials."
+
+#: prefs.js
+msgid "Failed to load albums"
+msgstr "Error en carregar els àlbums"
+
+#: prefs.js
+msgid "Error loading albums. Check your connection."
+msgstr "Error en carregar àlbums. Verifica la teva connexió."

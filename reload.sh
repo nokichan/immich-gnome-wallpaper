@@ -4,8 +4,8 @@
 echo "🔄 Forzando recarga completa de la extensión..."
 
 # Deshabilitar la extensión
-echo "1. Deshabilitando extensión..."
-gnome-extensions disable immich-wallpaper@oscar.extensions.gnome-shell
+echo "Deshabilitando extensión..."
+gnome-extensions disable immich-wallpaper@nokichan.github.io
 
 # Esperar un poco
 sleep 2
@@ -21,9 +21,9 @@ echo "3. Reinstalando..."
 # Esperar
 sleep 2
 
-# Habilitar de nuevo
-echo "4. Habilitando extensión..."
-gnome-extensions enable immich-wallpaper@oscar.extensions.gnome-shell
+# Habilitar la extensión
+echo "Habilitando extensión..."
+gnome-extensions enable immich-wallpaper@nokichan.github.io
 
 sleep 3
 

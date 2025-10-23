@@ -2,7 +2,7 @@
 
 # Script de instalación para Immich Wallpaper Extension
 
-EXTENSION_NAME="immich-wallpaper@oscar.extensions.gnome-shell"
+EXTENSION_NAME="immich-wallpaper@nokichan.github.io"
 EXTENSION_DIR="$HOME/.local/share/gnome-shell/extensions/$EXTENSION_NAME"
 
 echo "🚀 Instalando Immich Wallpaper Extension..."
@@ -17,6 +17,14 @@ cp extension.js "$EXTENSION_DIR/"
 cp prefs.js "$EXTENSION_DIR/"
 cp metadata.json "$EXTENSION_DIR/"
 cp -r schemas "$EXTENSION_DIR/"
+cp -r po "$EXTENSION_DIR/"
+
+# Compilar traducciones
+echo "🌍 Compilando traducciones..."
+mkdir -p "$EXTENSION_DIR/locale/es/LC_MESSAGES"
+mkdir -p "$EXTENSION_DIR/locale/ca/LC_MESSAGES"
+msgfmt po/es.po -o "$EXTENSION_DIR/locale/es/LC_MESSAGES/immich-wallpaper.mo"
+msgfmt po/ca.po -o "$EXTENSION_DIR/locale/ca/LC_MESSAGES/immich-wallpaper.mo"
 
 # Compilar esquemas
 echo "🔨 Compilando esquemas..."

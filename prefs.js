@@ -145,93 +145,95 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         this._loadAlbums(settings, albumModel, albumRow, albumIds);
     }
 
-    async _loadAlbums(settings, albumModel, albumRow, albumIds) {
-        try {
-            const serverUrl = settings.get_string('server-url');
-            const email = settings.get_string('email');
-            const password = settings.get_string('password');
-            
-            if (!serverUrl || !email || !password) {
-                albumRow.subtitle = _('Please configure server connection first');
-                return;
-            }
-
-            // Authenticate to get token
-            const session = new Soup.Session();
-            const authUrl = `${serverUrl}/api/auth/login`;
-            const authMessage = Soup.Message.new('POST', authUrl);
-            
-            const authData = {
-                email: email,
-                password: password,
-            };
-            
-            authMessage.set_request_body_from_bytes(
-                'application/json',
-                new GLib.Bytes(JSON.stringify(authData))
-            );
-
-            const authBytes = await session.send_and_read_async(
-                authMessage,
-                GLib.PRIORITY_DEFAULT,
-                null
-            );
-            
-            if (authMessage.get_status() !== 200 && authMessage.get_status() !== 201) {
-                albumRow.subtitle = _('Authentication failed. Check your credentials.');
-                return;
-            }
-
-            const authResponse = JSON.parse(new TextDecoder().decode(authBytes.get_data()));
-            const token = authResponse.accessToken;
-
-            // Fetch albums
-            const albumsUrl = `${serverUrl}/api/albums`;
-            const albumsMessage = Soup.Message.new('GET', albumsUrl);
-            albumsMessage.get_request_headers().append('Authorization', `Bearer ${token}`);
-
-            const albumsBytes = await session.send_and_read_async(
-                albumsMessage,
-                GLib.PRIORITY_DEFAULT,
-                null
-            );
-
-            if (albumsMessage.get_status() !== 200) {
-                albumRow.subtitle = _('Failed to load albums');
-                return;
-            }
-
-            const albums = JSON.parse(new TextDecoder().decode(albumsBytes.get_data()));
-            
-            // Sort albums by name
-            albums.sort((a, b) => a.albumName.localeCompare(b.albumName));
-            
-            // Add albums to the model
-            for (const album of albums) {
-                const displayName = `${album.albumName} (${album.assetCount} photos)`;
-                albumModel.append(displayName);
-                albumIds.push(album.id);
-            }
-
-            // Set current selection
-            const currentAlbumId = settings.get_string('album-id');
-            const currentIndex = albumIds.indexOf(currentAlbumId);
-            if (currentIndex !== -1) {
-                albumRow.selected = currentIndex;
-            }
-
-            // Update subtitle
-            albumRow.subtitle = _(`${albums.length} albums available`);
-
-            // Connect selection change
-            albumRow.connect('notify::selected', (row) => {
-                const selectedId = albumIds[row.selected];
-                settings.set_string('album-id', selectedId);
-            });
-
-        } catch (error) {
-            console.error('Error loading albums:', error);
-            albumRow.subtitle = _('Error loading albums. Check your connection.');
+    _loadAlbums(settings, albumModel, albumRow, albumIds) {
+        const serverUrl = settings.get_string('server-url');
+        const email = settings.get_string('email');
+        const password = settings.get_string('password');
+        
+        if (!serverUrl || !email || !password) {
+            albumRow.subtitle = _('Please configure server connection first');
+            return;
         }
+
+        // Authenticate to get token
+        const session = new Soup.Session();
+        const authUrl = `${serverUrl}/api/auth/login`;
+        const authMessage = Soup.Message.new('POST', authUrl);
+        
+        const authData = {
+            email: email,
+            password: password,
+        };
+        
+        authMessage.set_request_body_from_bytes(
+            'application/json',
+            new GLib.Bytes(JSON.stringify(authData))
+        );
+
+        session.send_and_read_async(authMessage, GLib.PRIORITY_DEFAULT, null, (session, result) => {
+            try {
+                const authBytes = session.send_and_read_finish(result);
+                
+                if (authMessage.get_status() !== 200 && authMessage.get_status() !== 201) {
+                    albumRow.subtitle = _('Authentication failed. Check your credentials.');
+                    return;
+                }
+
+                const authResponse = JSON.parse(new TextDecoder().decode(authBytes.get_data()));
+                const token = authResponse.accessToken;
+
+                // Fetch albums
+                const albumsUrl = `${serverUrl}/api/albums`;
+                const albumsMessage = Soup.Message.new('GET', albumsUrl);
+                albumsMessage.get_request_headers().append('Authorization', `Bearer ${token}`);
+
+                session.send_and_read_async(albumsMessage, GLib.PRIORITY_DEFAULT, null, (session, result) => {
+                    try {
+                        const albumsBytes = session.send_and_read_finish(result);
+
+                        if (albumsMessage.get_status() !== 200) {
+                            albumRow.subtitle = _('Failed to load albums');
+                            return;
+                        }
+
+                        const albums = JSON.parse(new TextDecoder().decode(albumsBytes.get_data()));
+                        
+                        // Sort albums by name
+                        albums.sort((a, b) => a.albumName.localeCompare(b.albumName));
+                        
+                        // Add albums to the model
+                        for (const album of albums) {
+                            const displayName = `${album.albumName} (${album.assetCount} photos)`;
+                            albumModel.append(displayName);
+                            albumIds.push(album.id);
+                        }
+
+                        // Set current selection
+                        const currentAlbumId = settings.get_string('album-id');
+                        const currentIndex = albumIds.indexOf(currentAlbumId);
+                        if (currentIndex !== -1) {
+                            albumRow.selected = currentIndex;
+                        }
+
+                        // Update subtitle
+                        albumRow.subtitle = `${albums.length} albums available`;
+
+                        // Connect selection change
+                        albumRow.connect('notify::selected', (row) => {
+                            const selectedId = albumIds[row.selected];
+                            settings.set_string('album-id', selectedId);
+                        });
+
+                    } catch (error) {
+                        console.error('Error loading albums:', error);
+                        albumRow.subtitle = _('Error loading albums. Check your connection.');
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error authenticating:', error);
+                albumRow.subtitle = _('Authentication failed. Check your credentials.');
+            }
+        });
     }
 }
