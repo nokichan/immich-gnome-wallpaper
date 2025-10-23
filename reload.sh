@@ -1,47 +1,47 @@
 #!/bin/bash
-# Script para forzar la recarga de la extensión
+# Script to force reload the extension
 
-echo "🔄 Forzando recarga completa de la extensión..."
+echo "🔄 Forcing complete extension reload..."
 
-# Deshabilitar la extensión
-echo "Deshabilitando extensión..."
+# Disable extension
+echo "Disabling extension..."
 gnome-extensions disable immich-wallpaper@nokichan.github.io
 
-# Esperar un poco
+# Wait a bit
 sleep 2
 
-# Eliminar el directorio compilado de GNOME Shell
-echo "2. Limpiando caché de GNOME Shell..."
+# Clear GNOME Shell compiled directory
+echo "2. Cleaning GNOME Shell cache..."
 rm -rf ~/.cache/gnome-shell/extensions/*immich* 2>/dev/null
 
-# Reinstalar
-echo "3. Reinstalando..."
+# Reinstall
+echo "3. Reinstalling..."
 ./install.sh > /dev/null 2>&1
 
-# Esperar
+# Wait
 sleep 2
 
-# Habilitar la extensión
-echo "Habilitando extensión..."
+# Enable extension
+echo "Enabling extension..."
 gnome-extensions enable immich-wallpaper@nokichan.github.io
 
 sleep 3
 
-# Mostrar estado
+# Show status
 echo ""
-echo "📊 Estado actual:"
-gnome-extensions info immich-wallpaper@oscar.extensions.gnome-shell | grep -E "Estado|State|Activado"
+echo "📊 Current status:"
+gnome-extensions info immich-wallpaper@nokichan.github.io | grep -E "Estado|State|Enabled"
 
 echo ""
-echo "📝 Logs recientes:"
+echo "📝 Recent logs:"
 journalctl --user --since "10 seconds ago" | grep -i immich | tail -10
 
 echo ""
-echo "📁 Fotos en caché:"
+echo "📁 Cached photos:"
 ls -lh ~/.cache/immich-wallpaper/*.jpg 2>/dev/null | wc -l | xargs echo "Total:"
 
 echo ""
-echo "⚠️  Si sigue sin funcionar, necesitas:"
-echo "   1. Cerrar sesión"
-echo "   2. Volver a iniciar sesión"
-echo "   3. La extensión se cargará con el código actualizado"
+echo "⚠️  If it still doesn't work, you need to:"
+echo "   1. Log out"
+echo "   2. Log back in"
+echo "   3. The extension will load with updated code"

@@ -1,46 +1,46 @@
 #!/bin/bash
 
-# Script para verificar el estado de la extensión
+# Script to verify extension status
 
 EXTENSION_NAME="immich-wallpaper@nokichan.github.io"
 
-echo "🔍 Estado de la extensión Immich Wallpaper"
+echo "🔍 Immich Wallpaper Extension Status"
 echo "=========================================="
 echo ""
 
-# Verificar si está instalada
+# Check if installed
 if gnome-extensions list | grep -q "$EXTENSION_NAME"; then
-    echo "✅ Extensión instalada"
+    echo "✅ Extension installed"
 else
-    echo "❌ Extensión NO instalada"
+    echo "❌ Extension NOT installed"
     exit 1
 fi
 
-# Verificar si está habilitada
+# Check if enabled
 if gnome-extensions list --enabled | grep -q "$EXTENSION_NAME"; then
-    echo "✅ Extensión habilitada"
+    echo "✅ Extension enabled"
 else
-    echo "⚠️  Extensión deshabilitada"
-    echo "   Ejecuta: gnome-extensions enable $EXTENSION_NAME"
+    echo "⚠️  Extension disabled"
+    echo "   Run: gnome-extensions enable $EXTENSION_NAME"
 fi
 
 echo ""
-echo "📁 Ubicación de archivos:"
+echo "📁 File location:"
 echo "   ~/.local/share/gnome-shell/extensions/$EXTENSION_NAME"
 echo ""
-echo "💾 Caché de fotos:"
+echo "💾 Photo cache:"
 echo "   ~/.cache/immich-wallpaper/"
 if [ -d ~/.cache/immich-wallpaper/ ]; then
     PHOTO_COUNT=$(ls -1 ~/.cache/immich-wallpaper/*.jpg 2>/dev/null | wc -l)
-    echo "   Fotos en caché: $PHOTO_COUNT"
+    echo "   Cached photos: $PHOTO_COUNT"
 else
-    echo "   Sin fotos en caché aún"
+    echo "   No photos cached yet"
 fi
 
 echo ""
-echo "⚙️  Comandos útiles:"
-echo "   • Abrir preferencias: gnome-extensions prefs $EXTENSION_NAME"
-echo "   • Ver logs: journalctl -f -o cat /usr/bin/gnome-shell | grep -i immich"
-echo "   • Deshabilitar: gnome-extensions disable $EXTENSION_NAME"
-echo "   • Reinstalar: ./install.sh"
+echo "⚙️  Useful commands:"
+echo "   • Open preferences: gnome-extensions prefs $EXTENSION_NAME"
+echo "   • View logs: journalctl -f -o cat /usr/bin/gnome-shell | grep -i immich"
+echo "   • Disable: gnome-extensions disable $EXTENSION_NAME"
+echo "   • Reinstall: ./install.sh"
 echo ""

@@ -1,118 +1,73 @@
 #!/bin/bash
 
-# Script para depurar la conexión a Immich
+# Debug script to test Immich API
+# Useful to verify that endpoints work correctly
 
-echo "🔍 Depurador de API de Immich"
-echo "=============================="
+SERVER_URL="https://fotos.perkalnet.mooo.com"
+EMAIL="oslopezaguilar@gmail.com"
+PASSWORD="PalosEnCara"
+
+echo "🔍 Testing Immich API..."
+echo "Server: $SERVER_URL"
 echo ""
 
-# Pedir credenciales
-read -p "URL del servidor Immich (ej: https://immich.example.com): " SERVER_URL
-read -p "Email: " EMAIL
-read -sp "Password: " PASSWORD
-echo ""
-echo ""
+# 1. Test authentication
+echo "1️⃣  Testing authentication..."
+AUTH_RESPONSE=$(curl -s -X POST "$SERVER_URL/api/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}")
 
-# Remover barra final
-SERVER_URL="${SERVER_URL%/}"
+echo "Response: $AUTH_RESPONSE"
+TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.accessToken')
 
-echo "1️⃣  Autenticando..."
-AUTH_RESPONSE=$(curl -s -X POST "${SERVER_URL}/api/auth/login" \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\"}")
-
-ACCESS_TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.accessToken')
-
-if [ "$ACCESS_TOKEN" == "null" ] || [ -z "$ACCESS_TOKEN" ]; then
-    echo "❌ Error de autenticación"
-    echo "Respuesta: $AUTH_RESPONSE"
+if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+    echo "❌ Authentication error"
     exit 1
 fi
 
-echo "✅ Autenticación exitosa"
-echo "Token: ${ACCESS_TOKEN:0:20}..."
+echo "✅ Token obtained: ${TOKEN:0:20}..."
 echo ""
 
-# Probar diferentes endpoints
-echo "2️⃣  Probando endpoints de la API..."
-echo ""
+# 2. Test getting random photos
+echo "2️⃣  Testing random photos endpoint..."
+RANDOM_RESPONSE=$(curl -s "$SERVER_URL/api/assets/random?count=10" \
+    -H "Authorization: Bearer $TOKEN")
 
-endpoints=(
-    "GET|/api/assets|Todos los assets"
-    "GET|/api/asset|Assets (viejo endpoint)"
-    "GET|/api/assets/random?count=10|Assets aleatorios"
-    "POST|/api/search/smart|Búsqueda inteligente"
-    "POST|/api/search/metadata|Búsqueda por metadata"
-)
+PHOTO_COUNT=$(echo "$RANDOM_RESPONSE" | jq '. | length')
+echo "✅ Photos fetched: $PHOTO_COUNT"
 
-for endpoint_info in "${endpoints[@]}"; do
-    IFS='|' read -r method path description <<< "$endpoint_info"
-    echo "Probando: $description"
-    echo "  Endpoint: $method $path"
-    
-    if [ "$method" == "GET" ]; then
-        RESPONSE=$(curl -s -w "\nSTATUS_CODE:%{http_code}" \
-          -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-          "${SERVER_URL}${path}")
-    else
-        RESPONSE=$(curl -s -w "\nSTATUS_CODE:%{http_code}" -X POST \
-          -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-          -H "Content-Type: application/json" \
-          -d '{"type":"IMAGE","size":10}' \
-          "${SERVER_URL}${path}")
-    fi
-    
-    STATUS=$(echo "$RESPONSE" | grep "STATUS_CODE:" | cut -d: -f2)
-    BODY=$(echo "$RESPONSE" | sed '/STATUS_CODE:/d')
-    
-    echo "  Status: $STATUS"
-    
-    if [ "$STATUS" == "200" ]; then
-        echo "  ✅ FUNCIONA"
-        COUNT=$(echo "$BODY" | jq '. | if type=="array" then length elif .assets then (.assets | if type=="array" then length else .items | length end) elif .items then (.items | length) else 0 end' 2>/dev/null || echo "?")
-        echo "  Elementos encontrados: $COUNT"
-        echo "  Muestra de respuesta: $(echo "$BODY" | jq '.' 2>/dev/null | head -10)"
-    else
-        echo "  ❌ Error"
-        echo "  Respuesta: $(echo "$BODY" | head -3)"
-    fi
+if [ "$PHOTO_COUNT" -gt 0 ]; then
+    FIRST_PHOTO_ID=$(echo "$RANDOM_RESPONSE" | jq -r '.[0].id')
+    echo "   First photo ID: $FIRST_PHOTO_ID"
     echo ""
-done
-
-echo "3️⃣  Probando descarga de thumbnail..."
-# Primero obtener un ID de asset usando search/metadata
-SEARCH_RESPONSE=$(curl -s -X POST \
-  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-  -H "Content-Type: application/json" \
-  -d '{"type":"IMAGE","size":1}' \
-  "${SERVER_URL}/api/search/metadata")
-
-ASSET_ID=$(echo "$SEARCH_RESPONSE" | jq -r '.assets.items[0].id // .items[0].id // .[0].id // empty' 2>/dev/null)
-
-if [ "$ASSET_ID" != "null" ] && [ -n "$ASSET_ID" ]; then
-    echo "  ID de asset de prueba: $ASSET_ID"
     
-    thumb_endpoints=(
-        "/api/asset/thumbnail/${ASSET_ID}"
-        "/api/assets/${ASSET_ID}/thumbnail"
-        "/api/asset/thumbnail/${ASSET_ID}?format=JPEG"
-        "/api/assets/${ASSET_ID}/thumbnail?size=preview"
-    )
+    # 3. Test downloading thumbnail
+    echo "3️⃣  Testing thumbnail download..."
+    THUMB_URL="$SERVER_URL/api/assets/$FIRST_PHOTO_ID/thumbnail?size=preview"
+    echo "   URL: $THUMB_URL"
     
-    for thumb_path in "${thumb_endpoints[@]}"; do
-        echo "  Probando: $thumb_path"
-        STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-          -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-          "${SERVER_URL}${thumb_path}")
-        if [ "$STATUS" == "200" ]; then
-            echo "    ✅ FUNCIONA (Status: $STATUS)"
-        else
-            echo "    ❌ Error (Status: $STATUS)"
-        fi
-    done
-else
-    echo "  ⚠️  No se pudo obtener un asset para probar"
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$THUMB_URL" \
+        -H "Authorization: Bearer $TOKEN")
+    
+    if [ "$HTTP_CODE" = "200" ]; then
+        echo "✅ Thumbnail downloaded successfully (HTTP $HTTP_CODE)"
+    else
+        echo "❌ Error downloading thumbnail (HTTP $HTTP_CODE)"
+    fi
 fi
 
 echo ""
-echo "✅ Depuración completada"
+echo "4️⃣  Testing albums endpoint..."
+ALBUMS_RESPONSE=$(curl -s "$SERVER_URL/api/albums" \
+    -H "Authorization: Bearer $TOKEN")
+
+ALBUM_COUNT=$(echo "$ALBUMS_RESPONSE" | jq '. | length')
+echo "✅ Albums fetched: $ALBUM_COUNT"
+
+if [ "$ALBUM_COUNT" -gt 0 ]; then
+    echo "   First 3 albums:"
+    echo "$ALBUMS_RESPONSE" | jq -r '.[0:3] | .[] | "   - \(.albumName) (\(.assetCount) photos)"'
+fi
+
+echo ""
+echo "✅ Tests completed"

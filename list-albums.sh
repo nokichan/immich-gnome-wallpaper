@@ -1,26 +1,26 @@
 #!/bin/bash
 
-# Script para obtener la lista de álbumes de Immich
+# Script to get the list of Immich albums
 
-echo "📸 Obteniendo lista de álbumes de Immich"
+echo "�� Getting Immich album list"
 echo "=========================================="
 echo ""
 
-# Leer configuración
+# Read configuration
 SERVER_URL=$(dconf read /org/gnome/shell/extensions/immich-wallpaper/server-url | tr -d "'")
 EMAIL=$(dconf read /org/gnome/shell/extensions/immich-wallpaper/email | tr -d "'")
 PASSWORD=$(dconf read /org/gnome/shell/extensions/immich-wallpaper/password | tr -d "'")
 
 if [ -z "$SERVER_URL" ] || [ -z "$EMAIL" ] || [ -z "$PASSWORD" ]; then
-    echo "❌ Error: Configuración no encontrada"
-    echo "Por favor, configura la extensión primero desde las preferencias"
+    echo "❌ Error: Configuration not found"
+    echo "Please configure the extension first from preferences"
     exit 1
 fi
 
-# Remover barra final
+# Remove trailing slash
 SERVER_URL="${SERVER_URL%/}"
 
-echo "🔐 Autenticando con ${SERVER_URL}..."
+echo "🔐 Authenticating with ${SERVER_URL}..."
 AUTH_RESPONSE=$(curl -s -X POST "${SERVER_URL}/api/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\"}")
@@ -28,26 +28,26 @@ AUTH_RESPONSE=$(curl -s -X POST "${SERVER_URL}/api/auth/login" \
 ACCESS_TOKEN=$(echo "$AUTH_RESPONSE" | jq -r '.accessToken')
 
 if [ "$ACCESS_TOKEN" == "null" ] || [ -z "$ACCESS_TOKEN" ]; then
-    echo "❌ Error de autenticación"
+    echo "❌ Authentication error"
     exit 1
 fi
 
-echo "✅ Autenticado correctamente"
+echo "✅ Successfully authenticated"
 echo ""
 
-# Obtener lista de álbumes
-echo "📋 Obteniendo álbumes..."
+# Get album list
+echo "📋 Fetching albums..."
 ALBUMS=$(curl -s -H "Authorization: Bearer ${ACCESS_TOKEN}" \
   "${SERVER_URL}/api/albums")
 
 if [ -z "$ALBUMS" ] || [ "$ALBUMS" == "null" ]; then
-    echo "❌ No se pudieron obtener los álbumes"
+    echo "❌ Could not fetch albums"
     exit 1
 fi
 
-# Mostrar álbumes en formato tabla
+# Display albums in table format
 echo ""
-echo "ID DEL ÁLBUM                          | NOMBRE                    | FOTOS"
+echo "ALBUM ID                              | NAME                      | PHOTOS"
 echo "--------------------------------------|---------------------------|-------"
 
 echo "$ALBUMS" | jq -r '.[] | "\(.id) | \(.albumName) | \(.assetCount)"' | while IFS='|' read -r id name count; do
@@ -55,9 +55,8 @@ echo "$ALBUMS" | jq -r '.[] | "\(.id) | \(.albumName) | \(.assetCount)"' | while
 done
 
 echo ""
-echo "📝 Para usar un álbum específico:"
-echo "   1. Copia el ID del álbum que quieras usar"
-echo "   echo ""
-echo "   2. Abre las preferencias: gnome-extensions prefs immich-wallpaper@nokichan.github.io""
-echo "   3. Pega el ID en el campo 'Album ID'"
-echo "   4. Deja el campo vacío para usar todas las fotos"
+echo "📝 To use a specific album:"
+echo "   1. Copy the ID of the album you want to use"
+echo "   2. Open preferences: gnome-extensions prefs immich-wallpaper@nokichan.github.io"
+echo "   3. Select the album from the dropdown"
+echo "   4. Or select 'All Photos' to use all photos"
