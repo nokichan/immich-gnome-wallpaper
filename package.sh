@@ -18,13 +18,10 @@ cp extension.js "$PACKAGE_DIR/"
 cp prefs.js "$PACKAGE_DIR/"
 cp metadata.json "$PACKAGE_DIR/"
 
-# Copy and compile schemas
-echo "🔨 Compiling schemas..."
+# Copy schemas (without compiling - not needed for GNOME 45+)
+echo "� Copying schemas..."
 mkdir -p "$PACKAGE_DIR/schemas"
 cp schemas/*.xml "$PACKAGE_DIR/schemas/"
-cd "$PACKAGE_DIR/schemas" || exit
-glib-compile-schemas .
-cd - > /dev/null
 
 # Compile translations
 if [ -d "po" ]; then

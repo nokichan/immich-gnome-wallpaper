@@ -44,6 +44,10 @@ export default class ImmichWallpaperExtension extends Extension {
             this._settingsChangedId = null;
         }
         
+        if (this._session) {
+            this._session.abort();
+        }
+        
         this._settings = null;
         this._session = null;
         this._accessToken = null;
@@ -285,6 +289,11 @@ export default class ImmichWallpaperExtension extends Extension {
     }
 
     _scheduleNextChange() {
+        if (this._timeoutId) {
+            GLib.source_remove(this._timeoutId);
+            this._timeoutId = null;
+        }
+        
         let interval = this._settings.get_int('change-interval');
         
         this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, interval, () => {
