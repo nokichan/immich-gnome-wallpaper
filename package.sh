@@ -18,12 +18,6 @@ cp extension.js "$PACKAGE_DIR/"
 cp prefs.js "$PACKAGE_DIR/"
 cp metadata.json "$PACKAGE_DIR/"
 
-# Copy icon if it exists
-if [ -f "icon.png" ]; then
-    echo "🎨 Copying icon..."
-    cp icon.png "$PACKAGE_DIR/"
-fi
-
 # Copy schemas
 echo "🔨 Copying schemas..."
 mkdir -p "$PACKAGE_DIR/schemas"

@@ -9,10 +9,10 @@
     "48",
     "49"
   ],
-  "version": 2,
+  "version": 3,
   "url": "https://github.com/nokichan/immich-gnome-wallpaper",
   "donations": {
-    "paypal": "paypal.me/onokichan"
+    "paypal": "onokichan"
   },
   "settings-schema": "org.gnome.shell.extensions.immich-wallpaper",
   "gettext-domain": "immich-wallpaper"
