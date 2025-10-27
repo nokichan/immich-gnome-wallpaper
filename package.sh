@@ -36,10 +36,11 @@ if [ -d "po" ]; then
     done
 fi
 
-# Create zip package
-cd "$BUILD_DIR" || exit
+# Create zip package from inside the package directory
 echo "🗜️  Creating zip archive..."
-zip -r "$EXTENSION_NAME.zip" "$EXTENSION_NAME"
+cd "$PACKAGE_DIR" || exit
+zip -r "../$EXTENSION_NAME.zip" .
+cd - > /dev/null
 
 echo ""
 echo "✅ Package created successfully!"
