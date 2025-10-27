@@ -11,6 +11,9 @@
   ],
   "version": 1,
   "url": "https://github.com/nokichan/immich-gnome-wallpaper",
+  "donations": {
+    "paypal": "paypal.me/onokichan"
+  },
   "settings-schema": "org.gnome.shell.extensions.immich-wallpaper",
   "gettext-domain": "immich-wallpaper"
 }
