@@ -3,6 +3,9 @@
 import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import Soup from 'gi://Soup';
+import St from 'gi://St';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -17,6 +20,7 @@ export default class ImmichWallpaperExtension extends Extension {
         this._accessToken = null;
         this._photoList = [];
         this._currentIndex = 0;
+        this._notificationSource = null;
         
         let dir = Gio.File.new_for_path(this._cacheDir);
         if (!dir.query_exists(null)) {
@@ -46,6 +50,11 @@ export default class ImmichWallpaperExtension extends Extension {
         
         if (this._session) {
             this._session.abort();
+        }
+        
+        if (this._notificationSource) {
+            this._notificationSource.destroy();
+            this._notificationSource = null;
         }
         
         this._settings = null;
@@ -219,6 +228,11 @@ export default class ImmichWallpaperExtension extends Extension {
         this._downloadPhoto(photo, (filepath) => {
             if (filepath) {
                 this._setWallpaper(filepath);
+                
+                // Fetch metadata and show location if enabled
+                if (this._settings.get_boolean('show-location')) {
+                    this._fetchPhotoMetadata(photo);
+                }
             }
         });
     }
@@ -275,16 +289,123 @@ export default class ImmichWallpaperExtension extends Extension {
             });
             
             let pictureOptions = this._settings.get_string('picture-options');
+            let backgroundColor = this._settings.get_string('background-color');
             let uri = `file://${filepath}`;
             
             backgroundSettings.set_string('picture-uri', uri);
             backgroundSettings.set_string('picture-uri-dark', uri);
             backgroundSettings.set_string('picture-options', pictureOptions);
+            backgroundSettings.set_string('primary-color', backgroundColor);
             
             console.log(`Immich Wallpaper: Set wallpaper to ${filepath}`);
             console.log(`Immich Wallpaper: Picture options: ${pictureOptions}`);
+            console.log(`Immich Wallpaper: Background color: ${backgroundColor}`);
         } catch (e) {
             console.log(`Immich Wallpaper: Error setting wallpaper: ${e}`);
+        }
+    }
+
+    _fetchPhotoMetadata(photo) {
+        let serverUrl = this._settings.get_string('server-url');
+        if (serverUrl.endsWith('/')) {
+            serverUrl = serverUrl.slice(0, -1);
+        }
+        
+        let metadataUrl = `${serverUrl}/api/assets/${photo.id}`;
+        let message = Soup.Message.new('GET', metadataUrl);
+        let headers = message.get_request_headers();
+        headers.append('Authorization', `Bearer ${this._accessToken}`);
+        
+        this._session.send_and_read_async(
+            message,
+            GLib.PRIORITY_DEFAULT,
+            null,
+            (session, result) => {
+                try {
+                    let bytes = session.send_and_read_finish(result);
+                    
+                    if (message.get_status() === 200) {
+                        let data = bytes.get_data();
+                        let responseText = new TextDecoder().decode(data);
+                        let metadata = JSON.parse(responseText);
+                        
+                        if (metadata.exifInfo) {
+                            this._showLocationNotification(metadata.exifInfo);
+                        }
+                    }
+                } catch (e) {
+                    console.log(`Immich Wallpaper: Error fetching metadata: ${e}`);
+                }
+            }
+        );
+    }
+
+    _showLocationNotification(exifInfo) {
+        // Check if we have location data
+        if (!exifInfo.latitude || !exifInfo.longitude) {
+            return;
+        }
+        
+        let locationText = this._buildLocationText(exifInfo);
+        if (!locationText) {
+            return;
+        }
+        
+        // Create notification source if it doesn't exist
+        if (!this._notificationSource) {
+            this._notificationSource = new MessageTray.Source({
+                title: 'Immich Wallpaper',
+                iconName: 'image-x-generic-symbolic'
+            });
+            Main.messageTray.add(this._notificationSource);
+        }
+        
+        // Create notification
+        let notification = new MessageTray.Notification({
+            source: this._notificationSource,
+            title: 'Photo Location',
+            body: locationText,
+            isTransient: true
+        });
+        
+        // Add action to open map
+        let mapProvider = this._settings.get_string('map-provider');
+        let mapUrl = this._buildMapUrl(exifInfo.latitude, exifInfo.longitude, mapProvider);
+        
+        notification.addAction('Open in Map', () => {
+            Gio.AppInfo.launch_default_for_uri(mapUrl, null);
+        });
+        
+        this._notificationSource.addNotification(notification);
+    }
+
+    _buildLocationText(exifInfo) {
+        let parts = [];
+        
+        if (exifInfo.city) {
+            parts.push(exifInfo.city);
+        }
+        if (exifInfo.state) {
+            parts.push(exifInfo.state);
+        }
+        if (exifInfo.country) {
+            parts.push(exifInfo.country);
+        }
+        
+        if (parts.length > 0) {
+            return parts.join(', ');
+        }
+        
+        // Fallback to coordinates if no location names available
+        return `${exifInfo.latitude.toFixed(4)}, ${exifInfo.longitude.toFixed(4)}`;
+    }
+
+    _buildMapUrl(latitude, longitude, provider) {
+        if (provider === 'googlemaps') {
+            return `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+        } else {
+            // OpenStreetMap
+            return `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}&zoom=15`;
         }
     }
 

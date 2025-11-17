@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: immich-wallpaper\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-23 12:00+0000\n"
+"POT-Creation-Date: 2025-11-17 08:53+0100\n"
 "PO-Revision-Date: 2025-10-23 12:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Catalan\n"
@@ -15,82 +15,114 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: prefs.js
+#: prefs.js:38
 msgid "Connection Settings"
 msgstr "Configuració de Connexió"
 
-#: prefs.js
+#: prefs.js:39
 msgid "Configure your Immich server connection"
 msgstr "Configura la connexió amb el teu servidor Immich"
 
-#: prefs.js
+#: prefs.js:45
 msgid "Server URL"
 msgstr "URL del Servidor"
 
-#: prefs.js
+#: prefs.js:55
 msgid "Email"
 msgstr "Correu Electrònic"
 
-#: prefs.js
+#: prefs.js:65
 msgid "Password"
 msgstr "Contrasenya"
 
-#: prefs.js
+#: prefs.js:75
 msgid "Wallpaper Settings"
 msgstr "Configuració del Fons de Pantalla"
 
-#: prefs.js
+#: prefs.js:76
 msgid "Configure wallpaper rotation behavior"
 msgstr "Configura el comportament de la rotació del fons"
 
-#: prefs.js
+#: prefs.js:82
 msgid "Change Interval (seconds)"
 msgstr "Temps de Interval de Canvi (segons)"
 
-#: prefs.js
+#: prefs.js:83
 msgid "Time between wallpaper changes"
 msgstr "Temps entre canvis de fons"
 
-#: prefs.js
+#: prefs.js:99
 msgid "Picture Options"
 msgstr "Opcions d'Imatge"
 
-#: prefs.js
+#: prefs.js:100
 msgid "How to display the wallpaper"
 msgstr "Com mostrar el fons de pantalla"
 
-#: prefs.js
+#: prefs.js:125
+msgid "Background Color"
+msgstr "Color de Fons"
+
+#: prefs.js:126
+msgid "Color displayed around photos"
+msgstr "Color mostrat al voltant de les fotos"
+
+#: prefs.js:150
+msgid "Location Settings"
+msgstr "Configuració d'Ubicació"
+
+#: prefs.js:151
+msgid "Display photo location from EXIF data"
+msgstr "Mostrar ubicació de la foto des de dades EXIF"
+
+#: prefs.js:157
+msgid "Show Location"
+msgstr "Mostrar Ubicació"
+
+#: prefs.js:158
+msgid "Display location overlay if photo has geolocation data"
+msgstr "Mostrar notificació d'ubicació si la foto té dades de geolocalització"
+
+#: prefs.js:169
+msgid "Map Provider"
+msgstr "Proveïdor de Mapes"
+
+#: prefs.js:170
+msgid "Which map service to open when clicking location"
+msgstr "Quin servei de mapes obrir en fer clic a la ubicació"
+
+#: prefs.js:191
 msgid "Album Selection"
 msgstr "Selecció d'Àlbum"
 
-#: prefs.js
+#: prefs.js:192
 msgid "Choose which album to use for wallpapers"
 msgstr "Tria quin àlbum utilitzar per als fons"
 
-#: prefs.js
-msgid "Select Album"
-msgstr "Seleccionar Àlbum"
-
-#: prefs.js
-msgid "Loading albums..."
-msgstr "Carregant àlbums..."
-
-#: prefs.js
+#: prefs.js:198
 msgid "All Photos (no filter)"
 msgstr "Totes les Fotos (sense filtre)"
 
-#: prefs.js
+#: prefs.js:201
+msgid "Select Album"
+msgstr "Seleccionar Àlbum"
+
+#: prefs.js:202
+msgid "Loading albums..."
+msgstr "Carregant àlbums..."
+
+#: prefs.js:221
 msgid "Please configure server connection first"
 msgstr "Si us plau configura primer la connexió al servidor"
 
-#: prefs.js
+#: prefs.js:245 prefs.js:302
 msgid "Authentication failed. Check your credentials."
 msgstr "Error d'autenticació. Verifica les teves credencials."
 
-#: prefs.js
+#: prefs.js:262
 msgid "Failed to load albums"
 msgstr "Error en carregar els àlbums"
 
-#: prefs.js
+#: prefs.js:296
 msgid "Error loading albums. Check your connection."
 msgstr "Error en carregar àlbums. Verifica la teva connexió."

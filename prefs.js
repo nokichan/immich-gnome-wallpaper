@@ -21,6 +21,7 @@ import Gio from 'gi://Gio';
 import Adw from 'gi://Adw';
 import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
+import Gdk from 'gi://Gdk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
@@ -118,6 +119,72 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
             settings.set_string('picture-options', optionsMap[row.selected]);
         });
         wallpaperGroup.add(pictureOptionsRow);
+
+        // Background color picker
+        const colorRow = new Adw.ActionRow({
+            title: _('Background Color'),
+            subtitle: _('Color displayed around photos'),
+        });
+        
+        const colorButton = new Gtk.ColorButton();
+        const rgba = new Gdk.RGBA();
+        rgba.parse(settings.get_string('background-color'));
+        colorButton.set_rgba(rgba);
+        colorButton.set_valign(Gtk.Align.CENTER);
+        
+        colorButton.connect('color-set', (button) => {
+            const color = button.get_rgba();
+            const hexColor = '#' + 
+                ('0' + Math.round(color.red * 255).toString(16)).slice(-2) +
+                ('0' + Math.round(color.green * 255).toString(16)).slice(-2) +
+                ('0' + Math.round(color.blue * 255).toString(16)).slice(-2);
+            settings.set_string('background-color', hexColor);
+        });
+        
+        colorRow.add_suffix(colorButton);
+        colorRow.set_activatable_widget(colorButton);
+        wallpaperGroup.add(colorRow);
+
+        // Create a group for location settings
+        const locationGroup = new Adw.PreferencesGroup({
+            title: _('Location Settings'),
+            description: _('Display photo location from EXIF data'),
+        });
+        page.add(locationGroup);
+
+        // Show location switch
+        const locationRow = new Adw.SwitchRow({
+            title: _('Show Location'),
+            subtitle: _('Display location overlay if photo has geolocation data'),
+        });
+        locationRow.set_active(settings.get_boolean('show-location'));
+        locationRow.connect('notify::active', (row) => {
+            settings.set_boolean('show-location', row.active);
+            mapProviderRow.set_sensitive(row.active);
+        });
+        locationGroup.add(locationRow);
+
+        // Map provider selection
+        const mapProviderRow = new Adw.ComboRow({
+            title: _('Map Provider'),
+            subtitle: _('Which map service to open when clicking location'),
+            model: new Gtk.StringList({
+                strings: [
+                    'OpenStreetMap',
+                    'Google Maps'
+                ]
+            }),
+            sensitive: settings.get_boolean('show-location')
+        });
+        
+        const mapProviderMap = ['openstreetmap', 'googlemaps'];
+        const currentMapProvider = settings.get_string('map-provider');
+        mapProviderRow.selected = mapProviderMap.indexOf(currentMapProvider);
+        
+        mapProviderRow.connect('notify::selected', (row) => {
+            settings.set_string('map-provider', mapProviderMap[row.selected]);
+        });
+        locationGroup.add(mapProviderRow);
 
         // Create a group for album selection
         const albumGroup = new Adw.PreferencesGroup({

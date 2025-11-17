@@ -6,6 +6,9 @@ A GNOME Shell extension that automatically sets your desktop wallpaper using pho
 
 - 🖼️ **Automatic wallpapers**: Automatically changes your desktop wallpaper with photos from your Immich server
 - 🎨 **Picture adjustment options**: Choose how images are displayed (zoom, centered, scaled, stretched, etc.)
+- 🎨 **Custom background color**: Choose the color displayed around photos when they don't fill the screen
+- 📍 **Location display**: Shows photo location from EXIF data with clickable map link (optional)
+- 🗺️ **Map integration**: Open photo locations in OpenStreetMap or Google Maps
 - 📁 **Album selection**: Use photos from a specific album or all your albums
 - 🔄 **Random rotation**: Photos are displayed in random order
 - ⏱️ **Configurable interval**: Set how often to change the wallpaper (minimum 60 seconds)
@@ -82,6 +85,11 @@ gnome-extensions prefs immich-wallpaper@nokichan.github.io
      - **Stretched**: Stretch to fill the entire screen
      - **Spanned**: Span across multiple monitors
      - **Wallpaper**: Tile mode
+   - **Background Color**: Choose the color displayed around photos (when photo doesn't fill the screen)
+   - **Show Location**: Enable to display photo location from EXIF data
+     - When enabled, a notification will show the location when the wallpaper changes
+     - Click "Open in Map" to view the location in your chosen map service
+   - **Map Provider**: Choose between OpenStreetMap or Google Maps for viewing locations
    - **Select Album**: Choose a specific album from the dropdown or use "All Photos"
      - The extension will automatically load your available albums
      - Select "All Photos (no filter)" to use random photos from all albums

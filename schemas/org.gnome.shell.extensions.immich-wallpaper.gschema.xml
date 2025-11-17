@@ -32,5 +32,20 @@
       <summary>Picture Options</summary>
       <description>How to display the wallpaper: zoom, centered, scaled, stretched, spanned, wallpaper</description>
     </key>
+    <key name="background-color" type="s">
+      <default>'#000000'</default>
+      <summary>Background Color</summary>
+      <description>Color to display around photos (when photo doesn't fill the screen)</description>
+    </key>
+    <key name="show-location" type="b">
+      <default>false</default>
+      <summary>Show Location</summary>
+      <description>Display photo location if available from EXIF data</description>
+    </key>
+    <key name="map-provider" type="s">
+      <default>'openstreetmap'</default>
+      <summary>Map Provider</summary>
+      <description>Which map service to use: openstreetmap or googlemaps</description>
+    </key>
   </schema>
 </schemalist>
