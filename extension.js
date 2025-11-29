@@ -43,6 +43,11 @@ export default class ImmichWallpaperExtension extends Extension {
             this._timeoutId = null;
         }
         
+        if (this._retryTimeoutId) {
+            GLib.source_remove(this._retryTimeoutId);
+            this._retryTimeoutId = null;
+        }
+        
         if (this._settingsChangedId) {
             this._settings.disconnect(this._settingsChangedId);
             this._settingsChangedId = null;
@@ -65,15 +70,32 @@ export default class ImmichWallpaperExtension extends Extension {
     }
 
     _startRotation() {
-        this._authenticate((success) => {
+        this._authenticate((success, errorMessage) => {
             if (success) {
                 this._fetchPhotoList(() => {
                     this._changeWallpaper();
                     this._scheduleNextChange();
                 });
             } else {
-                console.log('Immich Wallpaper: Authentication failed');
+                console.log(`Immich Wallpaper: Authentication failed - ${errorMessage || 'Unknown error'}`);
+                // Schedule a retry after 5 minutes
+                this._scheduleRetry();
             }
+        });
+    }
+
+    _scheduleRetry() {
+        if (this._retryTimeoutId) {
+            GLib.source_remove(this._retryTimeoutId);
+            this._retryTimeoutId = null;
+        }
+        
+        // Retry after 5 minutes
+        this._retryTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
+            this._retryTimeoutId = null;
+            console.log('Immich Wallpaper: Retrying authentication...');
+            this._startRotation();
+            return GLib.SOURCE_REMOVE;
         });
     }
 
@@ -97,7 +119,7 @@ export default class ImmichWallpaperExtension extends Extension {
         
         if (!serverUrl || !email || !password) {
             console.log('Immich Wallpaper: Missing configuration');
-            callback(false);
+            callback(false, 'Missing configuration (server URL, email, or password)');
             return;
         }
 
@@ -106,7 +128,20 @@ export default class ImmichWallpaperExtension extends Extension {
         }
         
         let authUrl = `${serverUrl}/api/auth/login`;
-        let message = Soup.Message.new('POST', authUrl);
+        let message;
+        
+        try {
+            message = Soup.Message.new('POST', authUrl);
+            if (!message) {
+                console.log('Immich Wallpaper: Invalid server URL');
+                callback(false, 'Invalid server URL');
+                return;
+            }
+        } catch (e) {
+            console.log(`Immich Wallpaper: Error creating request: ${e}`);
+            callback(false, 'Invalid server URL format');
+            return;
+        }
         
         let requestBody = JSON.stringify({
             email: email,
@@ -126,22 +161,50 @@ export default class ImmichWallpaperExtension extends Extension {
                 try {
                     let bytes = session.send_and_read_finish(result);
                     let data = bytes.get_data();
-                    let responseText = new TextDecoder().decode(data);
                     
-                    if (message.get_status() === 201 || message.get_status() === 200) {
-                        let response = JSON.parse(responseText);
+                    if (!data || data.length === 0) {
+                        console.log('Immich Wallpaper: Empty response from server');
+                        callback(false, 'Empty response from server');
+                        return;
+                    }
+                    
+                    let responseText = new TextDecoder().decode(data);
+                    let status = message.get_status();
+                    
+                    if (status === 201 || status === 200) {
+                        let response;
+                        try {
+                            response = JSON.parse(responseText);
+                        } catch (parseError) {
+                            console.log(`Immich Wallpaper: Invalid JSON response: ${parseError}`);
+                            callback(false, 'Invalid response from server');
+                            return;
+                        }
+                        
+                        if (!response.accessToken) {
+                            console.log('Immich Wallpaper: No access token in response');
+                            callback(false, 'No access token received');
+                            return;
+                        }
+                        
                         this._accessToken = response.accessToken;
                         console.log('Immich Wallpaper: Authentication successful');
                         console.log(`Immich Wallpaper: Token: ${this._accessToken.substring(0, 20)}...`);
-                        callback(true);
+                        callback(true, null);
+                    } else if (status === 401) {
+                        console.log('Immich Wallpaper: Invalid credentials');
+                        callback(false, 'Invalid email or password');
+                    } else if (status === 0) {
+                        console.log('Immich Wallpaper: Could not connect to server');
+                        callback(false, 'Could not connect to server');
                     } else {
-                        console.log(`Immich Wallpaper: Auth failed with status ${message.get_status()}`);
+                        console.log(`Immich Wallpaper: Auth failed with status ${status}`);
                         console.log(`Immich Wallpaper: Response: ${responseText}`);
-                        callback(false);
+                        callback(false, `Server error (status ${status})`);
                     }
                 } catch (e) {
                     console.log(`Immich Wallpaper: Error during authentication: ${e}`);
-                    callback(false);
+                    callback(false, `Connection error: ${e.message || e}`);
                 }
             }
         );
