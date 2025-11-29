@@ -47,5 +47,10 @@
       <summary>Map Provider</summary>
       <description>Which map service to use: openstreetmap or googlemaps</description>
     </key>
+    <key name="show-panel-icon" type="b">
+      <default>true</default>
+      <summary>Show Panel Icon</summary>
+      <description>Show an icon in the top panel with photo information</description>
+    </key>
   </schema>
 </schemalist>

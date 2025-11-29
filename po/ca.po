@@ -126,3 +126,115 @@ msgstr "Error en carregar els àlbums"
 #: prefs.js:296
 msgid "Error loading albums. Check your connection."
 msgstr "Error en carregar àlbums. Verifica la teva connexió."
+
+#: prefs.js:74
+msgid "Test Connection"
+msgstr "Provar Connexió"
+
+#: prefs.js:75
+msgid "Verify your server credentials"
+msgstr "Verifica les credencials del teu servidor"
+
+#: prefs.js:79
+msgid "Test"
+msgstr "Provar"
+
+#: prefs.js:243
+msgid "Testing..."
+msgstr "Provant..."
+
+#: prefs.js:250
+msgid "Connection successful!"
+msgstr "Connexió exitosa!"
+
+#: prefs.js:255
+msgid "Connection failed"
+msgstr "Connexió fallida"
+
+#: prefs.js:227
+msgid "Refresh Albums"
+msgstr "Actualitzar Àlbums"
+
+#: prefs.js:228
+msgid "Reload the album list from server"
+msgstr "Recarregar la llista d'àlbums des del servidor"
+
+#: prefs.js:269
+msgid "Refreshing..."
+msgstr "Actualitzant..."
+
+#: prefs.js:310
+msgid "Please fill in all connection fields"
+msgstr "Si us plau omple tots els camps de connexió"
+
+#: prefs.js:325
+msgid "Invalid server URL"
+msgstr "URL del servidor invàlida"
+
+#: prefs.js:331
+msgid "Invalid server URL format"
+msgstr "Format d'URL del servidor invàlid"
+
+#: prefs.js:355
+msgid "Could not connect to server"
+msgstr "No s'ha pogut connectar al servidor"
+
+#: prefs.js:362
+msgid "Invalid email or password"
+msgstr "Correu o contrasenya invàlids"
+
+#: prefs.js:365
+msgid "Server error (status %d)"
+msgstr "Error del servidor (estat %d)"
+
+#: prefs.js:372
+msgid "Empty response from server"
+msgstr "Resposta buida del servidor"
+
+#: prefs.js:381
+msgid "No access token received"
+msgstr "No s'ha rebut el token d'accés"
+
+#: prefs.js:388
+msgid "Connection error: %s"
+msgstr "Error de connexió: %s"
+
+#: prefs.js:418
+msgid "%d albums available"
+msgstr "%d àlbums disponibles"
+
+#: prefs.js:423
+msgid "Error loading albums"
+msgstr "Error en carregar àlbums"
+
+#: prefs.js:183
+msgid "Panel Icon"
+msgstr "Icona del Panell"
+
+#: prefs.js:184
+msgid "Show an icon in the top panel with photo information"
+msgstr "Mostrar una icona al panell superior amb informació de la foto"
+
+#: prefs.js:189
+msgid "Show Panel Icon"
+msgstr "Mostrar Icona del Panell"
+
+#: prefs.js:190
+msgid "Display an icon in the top panel with photo details"
+msgstr "Mostrar una icona al panell superior amb detalls de la foto"
+
+#: extension.js:108
+msgid "No photo loaded"
+msgstr "Cap foto carregada"
+
+#: extension.js:118
+msgid "No location available"
+msgstr "Ubicació no disponible"
+
+#: extension.js:130
+msgid "Next Wallpaper"
+msgstr "Següent Fons"
+
+#: extension.js:157
+msgid "No description available"
+msgstr "Sense descripció disponible"

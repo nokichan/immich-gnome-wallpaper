@@ -4,8 +4,11 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import Soup from 'gi://Soup';
 import St from 'gi://St';
+import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -21,6 +24,8 @@ export default class ImmichWallpaperExtension extends Extension {
         this._photoList = [];
         this._currentIndex = 0;
         this._notificationSource = null;
+        this._indicator = null;
+        this._currentPhotoMetadata = null;
         
         let dir = Gio.File.new_for_path(this._cacheDir);
         if (!dir.query_exists(null)) {
@@ -28,10 +33,15 @@ export default class ImmichWallpaperExtension extends Extension {
         }
 
         this._session = new Soup.Session();
+        this._createIndicator();
         this._startRotation();
         
-        this._settingsChangedId = this._settings.connect('changed', () => {
-            this._restartRotation();
+        this._settingsChangedId = this._settings.connect('changed', (settings, key) => {
+            if (key === 'show-panel-icon') {
+                this._updateIndicatorVisibility();
+            } else {
+                this._restartRotation();
+            }
         });
     }
 
@@ -62,11 +72,105 @@ export default class ImmichWallpaperExtension extends Extension {
             this._notificationSource = null;
         }
         
+        if (this._indicator) {
+            this._indicator.destroy();
+            this._indicator = null;
+        }
+        
         this._settings = null;
         this._session = null;
         this._accessToken = null;
         this._photoList = [];
         this._cacheDir = null;
+        this._currentPhotoMetadata = null;
+    }
+
+    _createIndicator() {
+        this._indicator = new PanelMenu.Button(0.0, 'Immich Wallpaper', false);
+        
+        let icon = new St.Icon({
+            icon_name: 'image-x-generic-symbolic',
+            style_class: 'system-status-icon',
+        });
+        this._indicator.add_child(icon);
+        
+        // Menu items
+        this._descriptionItem = new PopupMenu.PopupMenuItem('No photo loaded', {
+            reactive: false,
+            style_class: 'immich-description-item',
+        });
+        this._descriptionItem.label.clutter_text.set_line_wrap(true);
+        this._descriptionItem.label.clutter_text.set_line_wrap_mode(0); // WORD
+        this._descriptionItem.label.set_style('max-width: 300px;');
+        this._indicator.menu.addMenuItem(this._descriptionItem);
+        
+        this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        
+        this._locationItem = new PopupMenu.PopupMenuItem('No location available');
+        this._locationItem.connect('activate', () => {
+            if (this._currentPhotoMetadata && this._currentPhotoMetadata.exifInfo) {
+                let exif = this._currentPhotoMetadata.exifInfo;
+                if (exif.latitude && exif.longitude) {
+                    let mapProvider = this._settings.get_string('map-provider');
+                    let mapUrl = this._buildMapUrl(exif.latitude, exif.longitude, mapProvider);
+                    Gio.AppInfo.launch_default_for_uri(mapUrl, null);
+                }
+            }
+        });
+        this._locationItem.setSensitive(false);
+        this._indicator.menu.addMenuItem(this._locationItem);
+        
+        this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        
+        // Next wallpaper button
+        let nextItem = new PopupMenu.PopupMenuItem('Next Wallpaper');
+        nextItem.connect('activate', () => {
+            this._changeWallpaper();
+        });
+        this._indicator.menu.addMenuItem(nextItem);
+        
+        Main.panel.addToStatusArea('immich-wallpaper', this._indicator);
+        
+        this._updateIndicatorVisibility();
+    }
+
+    _updateIndicatorVisibility() {
+        if (this._indicator) {
+            let showIcon = this._settings.get_boolean('show-panel-icon');
+            this._indicator.visible = showIcon;
+        }
+    }
+
+    _updateIndicatorMenu(metadata) {
+        if (!this._indicator) {
+            return;
+        }
+        
+        this._currentPhotoMetadata = metadata;
+        
+        // Update description
+        if (metadata.exifInfo && metadata.exifInfo.description) {
+            this._descriptionItem.label.text = metadata.exifInfo.description;
+        } else if (metadata.originalFileName) {
+            this._descriptionItem.label.text = metadata.originalFileName;
+        } else {
+            this._descriptionItem.label.text = 'No description available';
+        }
+        
+        // Update location
+        if (metadata.exifInfo) {
+            let locationText = this._buildLocationText(metadata.exifInfo);
+            if (locationText && metadata.exifInfo.latitude && metadata.exifInfo.longitude) {
+                this._locationItem.label.text = `📍 ${locationText}`;
+                this._locationItem.setSensitive(true);
+            } else {
+                this._locationItem.label.text = 'No location available';
+                this._locationItem.setSensitive(false);
+            }
+        } else {
+            this._locationItem.label.text = 'No location available';
+            this._locationItem.setSensitive(false);
+        }
     }
 
     _startRotation() {
@@ -292,10 +396,9 @@ export default class ImmichWallpaperExtension extends Extension {
             if (filepath) {
                 this._setWallpaper(filepath);
                 
-                // Fetch metadata and show location if enabled
-                if (this._settings.get_boolean('show-location')) {
-                    this._fetchPhotoMetadata(photo);
-                }
+                // Always fetch metadata for the panel indicator
+                // and show notification if location is enabled
+                this._fetchPhotoMetadata(photo);
             }
         });
     }
@@ -392,7 +495,11 @@ export default class ImmichWallpaperExtension extends Extension {
                         let responseText = new TextDecoder().decode(data);
                         let metadata = JSON.parse(responseText);
                         
-                        if (metadata.exifInfo) {
+                        // Update panel indicator menu
+                        this._updateIndicatorMenu(metadata);
+                        
+                        // Show notification if location display is enabled
+                        if (this._settings.get_boolean('show-location') && metadata.exifInfo) {
                             this._showLocationNotification(metadata.exifInfo);
                         }
                     }

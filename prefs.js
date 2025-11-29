@@ -208,6 +208,24 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
         locationGroup.add(mapProviderRow);
 
+        // Create a group for panel icon settings
+        const panelGroup = new Adw.PreferencesGroup({
+            title: _('Panel Icon'),
+            description: _('Show an icon in the top panel with photo information'),
+        });
+        page.add(panelGroup);
+
+        // Show panel icon switch
+        const panelIconRow = new Adw.SwitchRow({
+            title: _('Show Panel Icon'),
+            subtitle: _('Display an icon in the top panel with photo details'),
+        });
+        panelIconRow.set_active(settings.get_boolean('show-panel-icon'));
+        panelIconRow.connect('notify::active', (row) => {
+            settings.set_boolean('show-panel-icon', row.active);
+        });
+        panelGroup.add(panelIconRow);
+
         // Create a group for album selection
         const albumGroup = new Adw.PreferencesGroup({
             title: _('Album Selection'),

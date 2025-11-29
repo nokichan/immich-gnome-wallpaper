@@ -128,3 +128,115 @@ msgstr ""
 #: prefs.js:296
 msgid "Error loading albums. Check your connection."
 msgstr ""
+
+#: prefs.js:74
+msgid "Test Connection"
+msgstr ""
+
+#: prefs.js:75
+msgid "Verify your server credentials"
+msgstr ""
+
+#: prefs.js:79
+msgid "Test"
+msgstr ""
+
+#: prefs.js:243
+msgid "Testing..."
+msgstr ""
+
+#: prefs.js:250
+msgid "Connection successful!"
+msgstr ""
+
+#: prefs.js:255
+msgid "Connection failed"
+msgstr ""
+
+#: prefs.js:227
+msgid "Refresh Albums"
+msgstr ""
+
+#: prefs.js:228
+msgid "Reload the album list from server"
+msgstr ""
+
+#: prefs.js:269
+msgid "Refreshing..."
+msgstr ""
+
+#: prefs.js:310
+msgid "Please fill in all connection fields"
+msgstr ""
+
+#: prefs.js:325
+msgid "Invalid server URL"
+msgstr ""
+
+#: prefs.js:331
+msgid "Invalid server URL format"
+msgstr ""
+
+#: prefs.js:355
+msgid "Could not connect to server"
+msgstr ""
+
+#: prefs.js:362
+msgid "Invalid email or password"
+msgstr ""
+
+#: prefs.js:365
+msgid "Server error (status %d)"
+msgstr ""
+
+#: prefs.js:372
+msgid "Empty response from server"
+msgstr ""
+
+#: prefs.js:381
+msgid "No access token received"
+msgstr ""
+
+#: prefs.js:388
+msgid "Connection error: %s"
+msgstr ""
+
+#: prefs.js:418
+msgid "%d albums available"
+msgstr ""
+
+#: prefs.js:423
+msgid "Error loading albums"
+msgstr ""
+
+#: prefs.js:183
+msgid "Panel Icon"
+msgstr ""
+
+#: prefs.js:184
+msgid "Show an icon in the top panel with photo information"
+msgstr ""
+
+#: prefs.js:189
+msgid "Show Panel Icon"
+msgstr ""
+
+#: prefs.js:190
+msgid "Display an icon in the top panel with photo details"
+msgstr ""
+
+#: extension.js:108
+msgid "No photo loaded"
+msgstr ""
+
+#: extension.js:118
+msgid "No location available"
+msgstr ""
+
+#: extension.js:130
+msgid "Next Wallpaper"
+msgstr ""
+
+#: extension.js:157
+msgid "No description available"
+msgstr ""
