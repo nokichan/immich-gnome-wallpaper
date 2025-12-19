@@ -1,3 +1,26 @@
+# Immich Wallpaper v1.1 - Random Selection & Persistence
+
+## 🎲 New Features (thanks [inktveer](https://github.com/inktveer) !)
+
+- **True random wallpaper selection**: Photos are now selected randomly instead of sequentially 
+- **Persistent index**: The current photo index is now saved to disk, preventing reset after system suspend/resume
+- **Improved index validation**: Added bounds checking to prevent out-of-range errors when photo list changes
+
+## 🐛 Bug Fixes
+
+- Fixed wallpaper rotation always following the same sequential order
+- Fixed index reset issue when system enters sleep mode
+- Added proper validation when photo list is updated
+
+## 🔧 Technical Improvements
+
+- Index is now stored in `~/.cache/immich-wallpaper/current-index`
+- Added `_validateCurrentIndex()` method for range checking
+- Improved error handling in file operations
+- Better state management across enable/disable cycles
+
+---
+
 # Immich Wallpaper v1.0 - Initial Release
 
 A GNOME Shell extension that automatically sets your desktop wallpaper using photos from your Immich server.

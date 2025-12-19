@@ -18,6 +18,7 @@ export default class ImmichWallpaperExtension extends Extension {
         
         this._settings = this.getSettings();
         this._cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'immich-wallpaper']);
+        this._indexFilePath = GLib.build_filenamev([this._cacheDir, 'current-index']);
         this._timeoutId = null;
         this._session = null;
         this._accessToken = null;
@@ -31,6 +32,9 @@ export default class ImmichWallpaperExtension extends Extension {
         if (!dir.query_exists(null)) {
             dir.make_directory_with_parents(null);
         }
+        
+        // Load the current index from file
+        this._loadCurrentIndex();
 
         this._session = new Soup.Session();
         this._createIndicator();
@@ -81,6 +85,7 @@ export default class ImmichWallpaperExtension extends Extension {
         this._session = null;
         this._accessToken = null;
         this._photoList = [];
+        this._currentIndex = 0;
         this._cacheDir = null;
         this._currentPhotoMetadata = null;
     }
@@ -368,6 +373,8 @@ export default class ImmichWallpaperExtension extends Extension {
                         console.log(`Immich Wallpaper: Fetched ${this._photoList.length} photos`);
                         
                         if (this._photoList.length > 0) {
+                            // Validate index is within range after loading photos
+                            this._validateCurrentIndex();
                             callback();
                         } else {
                             console.log('Immich Wallpaper: No photos available');
@@ -390,7 +397,9 @@ export default class ImmichWallpaperExtension extends Extension {
         }
 
         let photo = this._photoList[this._currentIndex];
-        this._currentIndex = (this._currentIndex + 1) % this._photoList.length;
+        // Select next wallpaper randomly
+        this._currentIndex = Math.floor(this._getRandomInRange(0, this._photoList.length));
+        this._saveCurrentIndex();
         
         this._downloadPhoto(photo, (filepath) => {
             if (filepath) {
@@ -401,6 +410,53 @@ export default class ImmichWallpaperExtension extends Extension {
                 this._fetchPhotoMetadata(photo);
             }
         });
+    }
+
+    _getRandomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    _loadCurrentIndex() {
+        try {
+            let file = Gio.File.new_for_path(this._indexFilePath);
+            if (file.query_exists(null)) {
+                let [success, contents] = file.load_contents(null);
+                if (success) {
+                    let index = parseInt(new TextDecoder().decode(contents));
+                    if (!isNaN(index) && index >= 0) {
+                        this._currentIndex = index;
+                        console.log(`Immich Wallpaper: Loaded index ${index} from file`);
+                    }
+                }
+            }
+        } catch (e) {
+            console.log(`Immich Wallpaper: Error loading index from file: ${e}`);
+        }
+    }
+
+    _validateCurrentIndex() {
+        // Ensure current index is within valid range
+        if (this._photoList.length > 0 && this._currentIndex >= this._photoList.length) {
+            this._currentIndex = 0;
+            this._saveCurrentIndex();
+            console.log('Immich Wallpaper: Index out of range, reset to 0');
+        }
+    }
+
+    _saveCurrentIndex() {
+        try {
+            let file = Gio.File.new_for_path(this._indexFilePath);
+            let contents = this._currentIndex.toString();
+            file.replace_contents(
+                new TextEncoder().encode(contents),
+                null,
+                false,
+                Gio.FileCreateFlags.REPLACE_DESTINATION,
+                null
+            );
+        } catch (e) {
+            console.log(`Immich Wallpaper: Error saving index to file: ${e}`);
+        }
     }
 
     _downloadPhoto(photo, callback) {
