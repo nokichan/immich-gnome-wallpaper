@@ -417,27 +417,25 @@ export default class ImmichWallpaperExtension extends Extension {
     }
 
     async _loadCurrentIndex() {
-        try {
-            let file = Gio.File.new_for_path(this._indexFilePath);
-            if (file.query_exists(null)) {
-                file.load_contents_async(null, (file, result) => {
-                    try {
-                        let [success, contents] = file.load_contents_finish(result);
-                        if (success) {
-                            let index = parseInt(new TextDecoder().decode(contents));
-                            if (!isNaN(index) && index >= 0) {
-                                this._currentIndex = index;
-                                console.log(`Immich Wallpaper: Loaded index ${index} from file`);
-                            }
-                        }
-                    } catch (e) {
-                        console.log(`Immich Wallpaper: Error parsing index from file: ${e}`);
-                    }
-                });
-            }
-        } catch (e) {
-            console.log(`Immich Wallpaper: Error loading index from file: ${e}`);
+        let file = Gio.File.new_for_path(this._indexFilePath);
+        if (!file.query_exists(null)) {
+            return;
         }
+        
+        file.load_contents_async(null, (file, result) => {
+            try {
+                let [success, contents] = file.load_contents_finish(result);
+                if (success) {
+                    let index = parseInt(new TextDecoder().decode(contents));
+                    if (!isNaN(index) && index >= 0) {
+                        this._currentIndex = index;
+                        console.log(`Immich Wallpaper: Loaded index ${index} from file`);
+                    }
+                }
+            } catch (e) {
+                console.log(`Immich Wallpaper: Error loading index from file: ${e}`);
+            }
+        });
     }
 
     _validateCurrentIndex() {
