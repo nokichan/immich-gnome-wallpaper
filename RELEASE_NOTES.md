@@ -1,3 +1,11 @@
+# Immich Wallpaper v1.2 - Async File Operations
+
+## 🔧 Technical Improvements
+
+- **Async file reading**: Changed from synchronous `load_contents()` to asynchronous `load_contents_async()` for loading the current index file, improving performance and preventing blocking in the GNOME Shell process
+
+---
+
 # Immich Wallpaper v1.1 - Random Selection & Persistence
 
 ## 🎲 New Features (thanks [inktveer](https://github.com/inktveer) !)
