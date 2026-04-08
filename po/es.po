@@ -1,0 +1,240 @@
+# Spanish translation for Immich Wallpaper GNOME Shell extension
+# Copyright (C) 2025
+# This file is distributed under the same license as the immich-wallpaper package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: immich-wallpaper\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-17 08:53+0100\n"
+"PO-Revision-Date: 2025-10-23 12:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: prefs.js:38
+msgid "Connection Settings"
+msgstr "Configuración de Conexión"
+
+#: prefs.js:39
+msgid "Configure your Immich server connection"
+msgstr "Configura la conexión con tu servidor Immich"
+
+#: prefs.js:45
+msgid "Server URL"
+msgstr "URL del Servidor"
+
+#: prefs.js:55
+msgid "Email"
+msgstr "Correo Electrónico"
+
+#: prefs.js:65
+msgid "Password"
+msgstr "Contraseña"
+
+#: prefs.js:75
+msgid "Wallpaper Settings"
+msgstr "Configuración de Fondo de Pantalla"
+
+#: prefs.js:76
+msgid "Configure wallpaper rotation behavior"
+msgstr "Configura el comportamiento de rotación de fondos"
+
+#: prefs.js:82
+msgid "Change Interval (seconds)"
+msgstr "Intervalo de Cambio (segundos)"
+
+#: prefs.js:83
+msgid "Time between wallpaper changes"
+msgstr "Tiempo entre cambios de fondo"
+
+#: prefs.js:99
+msgid "Picture Options"
+msgstr "Opciones de Imagen"
+
+#: prefs.js:100
+msgid "How to display the wallpaper"
+msgstr "Cómo mostrar el fondo de pantalla"
+
+#: prefs.js:125
+msgid "Background Color"
+msgstr "Color de Fondo"
+
+#: prefs.js:126
+msgid "Color displayed around photos"
+msgstr "Color mostrado alrededor de las fotos"
+
+#: prefs.js:150
+msgid "Location Settings"
+msgstr "Configuración de Ubicación"
+
+#: prefs.js:151
+msgid "Display photo location from EXIF data"
+msgstr "Mostrar ubicación de la foto desde datos EXIF"
+
+#: prefs.js:157
+msgid "Show Location"
+msgstr "Mostrar Ubicación"
+
+#: prefs.js:158
+msgid "Display location overlay if photo has geolocation data"
+msgstr "Mostrar notificación de ubicación si la foto tiene datos de geolocalización"
+
+#: prefs.js:169
+msgid "Map Provider"
+msgstr "Proveedor de Mapas"
+
+#: prefs.js:170
+msgid "Which map service to open when clicking location"
+msgstr "Qué servicio de mapas abrir al hacer clic en la ubicación"
+
+#: prefs.js:191
+msgid "Album Selection"
+msgstr "Selección de Álbum"
+
+#: prefs.js:192
+msgid "Choose which album to use for wallpapers"
+msgstr "Elige qué álbum usar para los fondos"
+
+#: prefs.js:198
+msgid "All Photos (no filter)"
+msgstr "Todas las Fotos (sin filtro)"
+
+#: prefs.js:201
+msgid "Select Album"
+msgstr "Seleccionar Álbum"
+
+#: prefs.js:202
+msgid "Loading albums..."
+msgstr "Cargando álbumes..."
+
+#: prefs.js:221
+msgid "Please configure server connection first"
+msgstr "Por favor configura primero la conexión al servidor"
+
+#: prefs.js:245 prefs.js:302
+msgid "Authentication failed. Check your credentials."
+msgstr "Error de autenticación. Verifica tus credenciales."
+
+#: prefs.js:262
+msgid "Failed to load albums"
+msgstr "Error al cargar los álbumes"
+
+#: prefs.js:296
+msgid "Error loading albums. Check your connection."
+msgstr "Error al cargar álbumes. Verifica tu conexión."
+
+#: prefs.js:74
+msgid "Test Connection"
+msgstr "Probar Conexión"
+
+#: prefs.js:75
+msgid "Verify your server credentials"
+msgstr "Verifica las credenciales de tu servidor"
+
+#: prefs.js:79
+msgid "Test"
+msgstr "Probar"
+
+#: prefs.js:243
+msgid "Testing..."
+msgstr "Probando..."
+
+#: prefs.js:250
+msgid "Connection successful!"
+msgstr "¡Conexión exitosa!"
+
+#: prefs.js:255
+msgid "Connection failed"
+msgstr "Conexión fallida"
+
+#: prefs.js:227
+msgid "Refresh Albums"
+msgstr "Actualizar Álbumes"
+
+#: prefs.js:228
+msgid "Reload the album list from server"
+msgstr "Recargar la lista de álbumes desde el servidor"
+
+#: prefs.js:269
+msgid "Refreshing..."
+msgstr "Actualizando..."
+
+#: prefs.js:310
+msgid "Please fill in all connection fields"
+msgstr "Por favor rellena todos los campos de conexión"
+
+#: prefs.js:325
+msgid "Invalid server URL"
+msgstr "URL del servidor inválida"
+
+#: prefs.js:331
+msgid "Invalid server URL format"
+msgstr "Formato de URL del servidor inválido"
+
+#: prefs.js:355
+msgid "Could not connect to server"
+msgstr "No se pudo conectar al servidor"
+
+#: prefs.js:362
+msgid "Invalid email or password"
+msgstr "Correo o contraseña inválidos"
+
+#: prefs.js:365
+msgid "Server error (status %d)"
+msgstr "Error del servidor (estado %d)"
+
+#: prefs.js:372
+msgid "Empty response from server"
+msgstr "Respuesta vacía del servidor"
+
+#: prefs.js:381
+msgid "No access token received"
+msgstr "No se recibió token de acceso"
+
+#: prefs.js:388
+msgid "Connection error: %s"
+msgstr "Error de conexión: %s"
+
+#: prefs.js:418
+msgid "%d albums available"
+msgstr "%d álbumes disponibles"
+
+#: prefs.js:423
+msgid "Error loading albums"
+msgstr "Error al cargar álbumes"
+
+#: prefs.js:183
+msgid "Panel Icon"
+msgstr "Icono del Panel"
+
+#: prefs.js:184
+msgid "Show an icon in the top panel with photo information"
+msgstr "Mostrar un icono en el panel superior con información de la foto"
+
+#: prefs.js:189
+msgid "Show Panel Icon"
+msgstr "Mostrar Icono del Panel"
+
+#: prefs.js:190
+msgid "Display an icon in the top panel with photo details"
+msgstr "Mostrar un icono en el panel superior con detalles de la foto"
+
+#: extension.js:108
+msgid "No photo loaded"
+msgstr "Ninguna foto cargada"
+
+#: extension.js:118
+msgid "No location available"
+msgstr "Ubicación no disponible"
+
+#: extension.js:130
+msgid "Next Wallpaper"
+msgstr "Siguiente Fondo"
+
+#: extension.js:157
+msgid "No description available"
+msgstr "Sin descripción disponible"

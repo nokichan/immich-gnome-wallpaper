@@ -1,0 +1,19 @@
+{
+  "name": "Immich Wallpaper",
+  "description": "Sets desktop wallpaper from Immich server photos",
+  "uuid": "immich-wallpaper@nokichan.github.io",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49"
+  ],
+  "version": 8,
+  "url": "https://github.com/nokichan/immich-gnome-wallpaper",
+  "donations": {
+    "paypal": "onokichan"
+  },
+  "settings-schema": "org.gnome.shell.extensions.immich-wallpaper",
+  "gettext-domain": "immich-wallpaper"
+}
