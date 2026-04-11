@@ -12,9 +12,15 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
+const DEBUG = false;
+
+function _log(msg) {
+    if (DEBUG) console.log(msg);
+}
+
 export default class ImmichWallpaperExtension extends Extension {
     enable() {
-        console.log('Enabling Immich Wallpaper extension');
+        _log('Enabling Immich Wallpaper extension');
         
         this._settings = this.getSettings();
         this._cacheDir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'immich-wallpaper']);
@@ -52,7 +58,7 @@ export default class ImmichWallpaperExtension extends Extension {
     }
 
     disable() {
-        console.log('Disabling Immich Wallpaper extension');
+        _log('Disabling Immich Wallpaper extension');
         
         if (this._timeoutId) {
             GLib.source_remove(this._timeoutId);
@@ -76,6 +82,16 @@ export default class ImmichWallpaperExtension extends Extension {
         if (this._notificationSource) {
             this._notificationSource.destroy();
             this._notificationSource = null;
+        }
+        
+        if (this._descriptionItem) {
+            this._descriptionItem.destroy();
+            this._descriptionItem = null;
+        }
+        
+        if (this._locationItem) {
+            this._locationItem.destroy();
+            this._locationItem = null;
         }
         
         if (this._indicator) {
@@ -188,7 +204,7 @@ export default class ImmichWallpaperExtension extends Extension {
                     this._scheduleNextChange();
                 });
             } else {
-                console.log(`Immich Wallpaper: Authentication failed - ${errorMessage || 'Unknown error'}`);
+                _log(`Immich Wallpaper: Authentication failed - ${errorMessage || 'Unknown error'}`);
                 // Schedule a retry after 5 minutes
                 this._scheduleRetry();
             }
@@ -204,7 +220,7 @@ export default class ImmichWallpaperExtension extends Extension {
         // Retry after 5 minutes
         this._retryTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 300, () => {
             this._retryTimeoutId = null;
-            console.log('Immich Wallpaper: Retrying authentication...');
+            _log('Immich Wallpaper: Retrying authentication...');
             this._startRotation();
             return GLib.SOURCE_REMOVE;
         });
@@ -229,7 +245,7 @@ export default class ImmichWallpaperExtension extends Extension {
         let password = this._settings.get_string('password');
         
         if (!serverUrl || !email || !password) {
-            console.log('Immich Wallpaper: Missing configuration');
+            _log('Immich Wallpaper: Missing configuration');
             callback(false, 'Missing configuration (server URL, email, or password)');
             return;
         }
@@ -244,12 +260,12 @@ export default class ImmichWallpaperExtension extends Extension {
         try {
             message = Soup.Message.new('POST', authUrl);
             if (!message) {
-                console.log('Immich Wallpaper: Invalid server URL');
+                _log('Immich Wallpaper: Invalid server URL');
                 callback(false, 'Invalid server URL');
                 return;
             }
         } catch (e) {
-            console.log(`Immich Wallpaper: Error creating request: ${e}`);
+            _log(`Immich Wallpaper: Error creating request: ${e}`);
             callback(false, 'Invalid server URL format');
             return;
         }
@@ -274,7 +290,7 @@ export default class ImmichWallpaperExtension extends Extension {
                     let data = bytes.get_data();
                     
                     if (!data || data.length === 0) {
-                        console.log('Immich Wallpaper: Empty response from server');
+                        _log('Immich Wallpaper: Empty response from server');
                         callback(false, 'Empty response from server');
                         return;
                     }
@@ -287,34 +303,34 @@ export default class ImmichWallpaperExtension extends Extension {
                         try {
                             response = JSON.parse(responseText);
                         } catch (parseError) {
-                            console.log(`Immich Wallpaper: Invalid JSON response: ${parseError}`);
+                            _log(`Immich Wallpaper: Invalid JSON response: ${parseError}`);
                             callback(false, 'Invalid response from server');
                             return;
                         }
                         
                         if (!response.accessToken) {
-                            console.log('Immich Wallpaper: No access token in response');
+                            _log('Immich Wallpaper: No access token in response');
                             callback(false, 'No access token received');
                             return;
                         }
                         
                         this._accessToken = response.accessToken;
-                        console.log('Immich Wallpaper: Authentication successful');
-                        console.log(`Immich Wallpaper: Token: ${this._accessToken.substring(0, 20)}...`);
+                        _log('Immich Wallpaper: Authentication successful');
+                        _log(`Immich Wallpaper: Token: ${this._accessToken.substring(0, 20)}...`);
                         callback(true, null);
                     } else if (status === 401) {
-                        console.log('Immich Wallpaper: Invalid credentials');
+                        _log('Immich Wallpaper: Invalid credentials');
                         callback(false, 'Invalid email or password');
                     } else if (status === 0) {
-                        console.log('Immich Wallpaper: Could not connect to server');
+                        _log('Immich Wallpaper: Could not connect to server');
                         callback(false, 'Could not connect to server');
                     } else {
-                        console.log(`Immich Wallpaper: Auth failed with status ${status}`);
-                        console.log(`Immich Wallpaper: Response: ${responseText}`);
+                        _log(`Immich Wallpaper: Auth failed with status ${status}`);
+                        _log(`Immich Wallpaper: Response: ${responseText}`);
                         callback(false, `Server error (status ${status})`);
                     }
                 } catch (e) {
-                    console.log(`Immich Wallpaper: Error during authentication: ${e}`);
+                    _log(`Immich Wallpaper: Error during authentication: ${e}`);
                     callback(false, `Connection error: ${e.message || e}`);
                 }
             }
@@ -323,7 +339,7 @@ export default class ImmichWallpaperExtension extends Extension {
 
     _fetchPhotoList(callback) {
         let serverUrl = this._settings.get_string('server-url');
-        console.log(`Immich Wallpaper: Server URL from settings: ${serverUrl}`);
+        _log(`Immich Wallpaper: Server URL from settings: ${serverUrl}`);
         
         if (serverUrl.endsWith('/')) {
             serverUrl = serverUrl.slice(0, -1);
@@ -335,15 +351,15 @@ export default class ImmichWallpaperExtension extends Extension {
         if (albumId && albumId.trim() !== '') {
             // Use specific album
             apiUrl = `${serverUrl}/api/albums/${albumId.trim()}`;
-            console.log(`Immich Wallpaper: Fetching photos from album ${albumId}`);
+            _log(`Immich Wallpaper: Fetching photos from album ${albumId}`);
         } else {
             // Use random assets from all albums
             apiUrl = `${serverUrl}/api/assets/random?count=100`;
-            console.log(`Immich Wallpaper: Fetching random photos from all albums`);
+            _log(`Immich Wallpaper: Fetching random photos from all albums`);
         }
         
-        console.log(`Immich Wallpaper: API URL: ${apiUrl}`);
-        console.log(`Immich Wallpaper: Using token: ${this._accessToken ? this._accessToken.substring(0, 20) + '...' : 'NULL'}`);
+        _log(`Immich Wallpaper: API URL: ${apiUrl}`);
+        _log(`Immich Wallpaper: Using token: ${this._accessToken ? this._accessToken.substring(0, 20) + '...' : 'NULL'}`);
         
         let message = Soup.Message.new('GET', apiUrl);
         let headers = message.get_request_headers();
@@ -368,25 +384,25 @@ export default class ImmichWallpaperExtension extends Extension {
                         } else if (response.assets && Array.isArray(response.assets)) {
                             this._photoList = response.assets.filter(asset => asset.type === 'IMAGE');
                         } else {
-                            console.log(`Immich Wallpaper: Unexpected response format`);
+                            _log(`Immich Wallpaper: Unexpected response format`);
                             this._photoList = [];
                         }
                         
-                        console.log(`Immich Wallpaper: Fetched ${this._photoList.length} photos`);
+                        _log(`Immich Wallpaper: Fetched ${this._photoList.length} photos`);
                         
                         if (this._photoList.length > 0) {
                             // Validate index is within range after loading photos
                             this._validateCurrentIndex();
                             callback();
                         } else {
-                            console.log('Immich Wallpaper: No photos available');
+                            _log('Immich Wallpaper: No photos available');
                         }
                     } else {
-                        console.log(`Immich Wallpaper: Failed to fetch photos with status ${message.get_status()}`);
-                        console.log(`Immich Wallpaper: Response: ${responseText.substring(0, 200)}`);
+                        _log(`Immich Wallpaper: Failed to fetch photos with status ${message.get_status()}`);
+                        _log(`Immich Wallpaper: Response: ${responseText.substring(0, 200)}`);
                     }
                 } catch (e) {
-                    console.log(`Immich Wallpaper: Error fetching photos: ${e}`);
+                    _log(`Immich Wallpaper: Error fetching photos: ${e}`);
                 }
             }
         );
@@ -394,7 +410,7 @@ export default class ImmichWallpaperExtension extends Extension {
 
     _changeWallpaper() {
         if (this._photoList.length === 0) {
-            console.log('Immich Wallpaper: No photos available');
+            _log('Immich Wallpaper: No photos available');
             return;
         }
 
@@ -431,11 +447,11 @@ export default class ImmichWallpaperExtension extends Extension {
                     let index = parseInt(new TextDecoder().decode(contents));
                     if (!isNaN(index) && index >= 0) {
                         this._currentIndex = index;
-                        console.log(`Immich Wallpaper: Loaded index ${index} from file`);
+                        _log(`Immich Wallpaper: Loaded index ${index} from file`);
                     }
                 }
             } catch (e) {
-                console.log(`Immich Wallpaper: Error loading index from file: ${e}`);
+                _log(`Immich Wallpaper: Error loading index from file: ${e}`);
             }
         });
     }
@@ -445,7 +461,7 @@ export default class ImmichWallpaperExtension extends Extension {
         if (this._photoList.length > 0 && this._currentIndex >= this._photoList.length) {
             this._currentIndex = 0;
             this._saveCurrentIndex();
-            console.log('Immich Wallpaper: Index out of range, reset to 0');
+            _log('Immich Wallpaper: Index out of range, reset to 0');
         }
     }
 
@@ -461,7 +477,7 @@ export default class ImmichWallpaperExtension extends Extension {
                 null
             );
         } catch (e) {
-            console.log(`Immich Wallpaper: Error saving index to file: ${e}`);
+            _log(`Immich Wallpaper: Error saving index to file: ${e}`);
         }
     }
 
@@ -496,14 +512,14 @@ export default class ImmichWallpaperExtension extends Extension {
                         outputStream.write_bytes(bytes, null);
                         outputStream.close(null);
                         
-                        console.log(`Immich Wallpaper: Downloaded ${filename}`);
+                        _log(`Immich Wallpaper: Downloaded ${filename}`);
                         callback(filepath);
                     } else {
-                        console.log(`Immich Wallpaper: Failed to download photo with status ${message.get_status()}`);
+                        _log(`Immich Wallpaper: Failed to download photo with status ${message.get_status()}`);
                         callback(null);
                     }
                 } catch (e) {
-                    console.log(`Immich Wallpaper: Error downloading photo: ${e}`);
+                    _log(`Immich Wallpaper: Error downloading photo: ${e}`);
                     callback(null);
                 }
             }
@@ -525,11 +541,11 @@ export default class ImmichWallpaperExtension extends Extension {
             backgroundSettings.set_string('picture-options', pictureOptions);
             backgroundSettings.set_string('primary-color', backgroundColor);
             
-            console.log(`Immich Wallpaper: Set wallpaper to ${filepath}`);
-            console.log(`Immich Wallpaper: Picture options: ${pictureOptions}`);
-            console.log(`Immich Wallpaper: Background color: ${backgroundColor}`);
+            _log(`Immich Wallpaper: Set wallpaper to ${filepath}`);
+            _log(`Immich Wallpaper: Picture options: ${pictureOptions}`);
+            _log(`Immich Wallpaper: Background color: ${backgroundColor}`);
         } catch (e) {
-            console.log(`Immich Wallpaper: Error setting wallpaper: ${e}`);
+            _log(`Immich Wallpaper: Error setting wallpaper: ${e}`);
         }
     }
 
@@ -566,7 +582,7 @@ export default class ImmichWallpaperExtension extends Extension {
                         }
                     }
                 } catch (e) {
-                    console.log(`Immich Wallpaper: Error fetching metadata: ${e}`);
+                    _log(`Immich Wallpaper: Error fetching metadata: ${e}`);
                 }
             }
         );
