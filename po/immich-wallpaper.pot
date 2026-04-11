@@ -240,3 +240,11 @@ msgstr ""
 #: extension.js:157
 msgid "No description available"
 msgstr ""
+
+#: prefs.js
+msgid "Show Notifications"
+msgstr ""
+
+#: prefs.js
+msgid "Show a popup notification each time the wallpaper changes"
+msgstr ""

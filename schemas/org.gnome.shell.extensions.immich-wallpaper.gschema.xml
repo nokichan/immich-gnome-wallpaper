@@ -52,5 +52,10 @@
       <summary>Show Panel Icon</summary>
       <description>Show an icon in the top panel with photo information</description>
     </key>
+    <key name="show-notifications" type="b">
+      <default>true</default>
+      <summary>Show Notifications</summary>
+      <description>Show a popup notification each time the wallpaper changes to a new photo</description>
+    </key>
   </schema>
 </schemalist>

@@ -238,3 +238,11 @@ msgstr "Següent Fons"
 #: extension.js:157
 msgid "No description available"
 msgstr "Sense descripció disponible"
+
+#: prefs.js
+msgid "Show Notifications"
+msgstr "Mostrar Notificacions"
+
+#: prefs.js
+msgid "Show a popup notification each time the wallpaper changes"
+msgstr "Mostrar una notificació emergent cada vegada que canvia el fons de pantalla"

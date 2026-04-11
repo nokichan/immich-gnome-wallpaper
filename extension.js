@@ -43,6 +43,8 @@ export default class ImmichWallpaperExtension extends Extension {
         this._settingsChangedId = this._settings.connect('changed', (settings, key) => {
             if (key === 'show-panel-icon') {
                 this._updateIndicatorVisibility();
+            } else if (key === 'show-notifications') {
+                // Applied at the next wallpaper change; no restart needed
             } else {
                 this._restartRotation();
             }
@@ -558,8 +560,8 @@ export default class ImmichWallpaperExtension extends Extension {
                         // Update panel indicator menu
                         this._updateIndicatorMenu(metadata);
                         
-                        // Show notification if location display is enabled
-                        if (this._settings.get_boolean('show-location') && metadata.exifInfo) {
+                        // Show notification if notifications are enabled
+                        if (this._settings.get_boolean('show-notifications') && metadata.exifInfo) {
                             this._showLocationNotification(metadata.exifInfo);
                         }
                     }

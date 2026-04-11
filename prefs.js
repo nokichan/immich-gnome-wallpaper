@@ -226,6 +226,17 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
         panelGroup.add(panelIconRow);
 
+        // Show notifications switch
+        const notificationsRow = new Adw.SwitchRow({
+            title: _('Show Notifications'),
+            subtitle: _('Show a popup notification each time the wallpaper changes'),
+        });
+        notificationsRow.set_active(settings.get_boolean('show-notifications'));
+        notificationsRow.connect('notify::active', (row) => {
+            settings.set_boolean('show-notifications', row.active);
+        });
+        panelGroup.add(notificationsRow);
+
         // Create a group for album selection
         const albumGroup = new Adw.PreferencesGroup({
             title: _('Album Selection'),
