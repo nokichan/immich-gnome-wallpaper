@@ -248,3 +248,35 @@ msgstr ""
 #: prefs.js
 msgid "Show a popup notification each time the wallpaper changes"
 msgstr ""
+
+#: prefs.js
+msgid "Authentication Type"
+msgstr ""
+
+#: prefs.js
+msgid "Choose authentication method"
+msgstr ""
+
+#: prefs.js
+msgid "Email + Password"
+msgstr ""
+
+#: prefs.js
+msgid "API Key"
+msgstr ""
+
+#: prefs.js
+msgid "Please enter server URL"
+msgstr ""
+
+#: prefs.js
+msgid "Please enter API key"
+msgstr ""
+
+#: prefs.js
+msgid "Please fill in email and password"
+msgstr ""
+
+#: prefs.js
+msgid "Invalid API key"
+msgstr ""

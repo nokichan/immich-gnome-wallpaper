@@ -28,6 +28,7 @@ export default class ImmichWallpaperExtension extends Extension {
         this._timeoutId = null;
         this._session = null;
         this._accessToken = null;
+        this._authType = 'password';
         this._photoList = [];
         this._currentIndex = 0;
         this._notificationSource = null;
@@ -102,6 +103,7 @@ export default class ImmichWallpaperExtension extends Extension {
         this._settings = null;
         this._session = null;
         this._accessToken = null;
+        this._authType = 'password';
         this._photoList = [];
         this._currentIndex = 0;
         this._cacheDir = null;
@@ -233,25 +235,97 @@ export default class ImmichWallpaperExtension extends Extension {
         }
         
         this._accessToken = null;
+        this._authType = 'password';
         this._photoList = [];
         this._currentIndex = 0;
         
         this._startRotation();
     }
 
+    _addAuthHeader(headers, token) {
+        if (this._authType === 'api-key') {
+            headers.append('x-api-key', token);
+        } else {
+            headers.append('Authorization', `Bearer ${token}`);
+        }
+    }
+
     _authenticate(callback) {
         let serverUrl = this._settings.get_string('server-url');
-        let email = this._settings.get_string('email');
-        let password = this._settings.get_string('password');
+        let authType = this._settings.get_string('auth-type');
+        this._authType = authType;
         
-        if (!serverUrl || !email || !password) {
-            _log('Immich Wallpaper: Missing configuration');
-            callback(false, 'Missing configuration (server URL, email, or password)');
+        if (!serverUrl) {
+            _log('Immich Wallpaper: Missing server URL');
+            callback(false, 'Missing server URL');
             return;
         }
 
         if (serverUrl.endsWith('/')) {
             serverUrl = serverUrl.slice(0, -1);
+        }
+
+        // API Key authentication
+        if (authType === 'api-key') {
+            let apiKey = this._settings.get_string('api-key');
+            if (!apiKey) {
+                _log('Immich Wallpaper: Missing API key');
+                callback(false, 'Missing API key');
+                return;
+            }
+
+            // Verify API key by calling user endpoint
+            let testUrl = `${serverUrl}/api/users/me`;
+            let testMessage;
+            try {
+                testMessage = Soup.Message.new('GET', testUrl);
+                testMessage.get_request_headers().append('x-api-key', apiKey);
+            } catch (e) {
+                _log(`Immich Wallpaper: Error creating request: ${e}`);
+                callback(false, 'Invalid server URL format');
+                return;
+            }
+
+            this._session.send_and_read_async(
+                testMessage,
+                GLib.PRIORITY_DEFAULT,
+                null,
+                (session, result) => {
+                    try {
+                        let bytes = session.send_and_read_finish(result);
+                        let status = testMessage.get_status();
+
+                        if (status === 200) {
+                            this._accessToken = apiKey;
+                            _log('Immich Wallpaper: API key authentication successful');
+                            callback(true, null);
+                        } else if (status === 401) {
+                            _log('Immich Wallpaper: Invalid API key');
+                            callback(false, 'Invalid API key');
+                        } else if (status === 0) {
+                            _log('Immich Wallpaper: Could not connect to server');
+                            callback(false, 'Could not connect to server');
+                        } else {
+                            _log(`Immich Wallpaper: API key verification failed with status ${status}`);
+                            callback(false, `Server error (status ${status})`);
+                        }
+                    } catch (e) {
+                        _log(`Immich Wallpaper: Error verifying API key: ${e}`);
+                        callback(false, `Connection error: ${e.message || e}`);
+                    }
+                }
+            );
+            return;
+        }
+
+        // Password authentication
+        let email = this._settings.get_string('email');
+        let password = this._settings.get_string('password');
+        
+        if (!email || !password) {
+            _log('Immich Wallpaper: Missing email or password');
+            callback(false, 'Missing email or password');
+            return;
         }
         
         let authUrl = `${serverUrl}/api/auth/login`;
@@ -315,8 +389,7 @@ export default class ImmichWallpaperExtension extends Extension {
                         }
                         
                         this._accessToken = response.accessToken;
-                        _log('Immich Wallpaper: Authentication successful');
-                        _log(`Immich Wallpaper: Token: ${this._accessToken.substring(0, 20)}...`);
+                        _log('Immich Wallpaper: Password authentication successful');
                         callback(true, null);
                     } else if (status === 401) {
                         _log('Immich Wallpaper: Invalid credentials');
@@ -326,7 +399,6 @@ export default class ImmichWallpaperExtension extends Extension {
                         callback(false, 'Could not connect to server');
                     } else {
                         _log(`Immich Wallpaper: Auth failed with status ${status}`);
-                        _log(`Immich Wallpaper: Response: ${responseText}`);
                         callback(false, `Server error (status ${status})`);
                     }
                 } catch (e) {
@@ -359,11 +431,10 @@ export default class ImmichWallpaperExtension extends Extension {
         }
         
         _log(`Immich Wallpaper: API URL: ${apiUrl}`);
-        _log(`Immich Wallpaper: Using token: ${this._accessToken ? this._accessToken.substring(0, 20) + '...' : 'NULL'}`);
         
         let message = Soup.Message.new('GET', apiUrl);
         let headers = message.get_request_headers();
-        headers.append('Authorization', `Bearer ${this._accessToken}`);
+        this._addAuthHeader(headers, this._accessToken);
         
         this._session.send_and_read_async(
             message,
@@ -491,7 +562,7 @@ export default class ImmichWallpaperExtension extends Extension {
         
         let message = Soup.Message.new('GET', photoUrl);
         let headers = message.get_request_headers();
-        headers.append('Authorization', `Bearer ${this._accessToken}`);
+        this._addAuthHeader(headers, this._accessToken);
         
         this._session.send_and_read_async(
             message,
@@ -558,7 +629,7 @@ export default class ImmichWallpaperExtension extends Extension {
         let metadataUrl = `${serverUrl}/api/assets/${photo.id}`;
         let message = Soup.Message.new('GET', metadataUrl);
         let headers = message.get_request_headers();
-        headers.append('Authorization', `Bearer ${this._accessToken}`);
+        this._addAuthHeader(headers, this._accessToken);
         
         this._session.send_and_read_async(
             message,

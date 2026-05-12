@@ -246,3 +246,35 @@ msgstr "Mostrar Notificaciones"
 #: prefs.js
 msgid "Show a popup notification each time the wallpaper changes"
 msgstr "Mostrar una notificación emergente cada vez que cambia el fondo de pantalla"
+
+#: prefs.js
+msgid "Authentication Type"
+msgstr "Tipo de Autenticación"
+
+#: prefs.js
+msgid "Choose authentication method"
+msgstr "Elige el método de autenticación"
+
+#: prefs.js
+msgid "Email + Password"
+msgstr "Correo + Contraseña"
+
+#: prefs.js
+msgid "API Key"
+msgstr "Clave API"
+
+#: prefs.js
+msgid "Please enter server URL"
+msgstr "Por favor introduce la URL del servidor"
+
+#: prefs.js
+msgid "Please enter API key"
+msgstr "Por favor introduce la clave API"
+
+#: prefs.js
+msgid "Please fill in email and password"
+msgstr "Por favor introduce correo y contraseña"
+
+#: prefs.js
+msgid "Invalid API key"
+msgstr "Clave API inválida"

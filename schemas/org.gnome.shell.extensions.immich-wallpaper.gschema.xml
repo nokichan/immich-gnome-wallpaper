@@ -16,6 +16,16 @@
       <summary>Password</summary>
       <description>Password for Immich authentication</description>
     </key>
+    <key name="auth-type" type="s">
+      <default>'password'</default>
+      <summary>Authentication Type</summary>
+      <description>How to authenticate: 'password' (email + password) or 'api-key' (API key)</description>
+    </key>
+    <key name="api-key" type="s">
+      <default>''</default>
+      <summary>API Key</summary>
+      <description>API key for Immich authentication (instead of email/password)</description>
+    </key>
     <key name="change-interval" type="i">
       <default>1800</default>
       <range min="60" max="86400"/>

@@ -70,6 +70,40 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
         connectionGroup.add(passwordRow);
 
+        // Authentication type
+        const authTypeRow = new Adw.ComboRow({
+            title: _('Authentication Type'),
+            subtitle: _('Choose authentication method'),
+            model: new Gtk.StringList({
+                strings: [
+                    _('Email + Password'),
+                    _('API Key')
+                ]
+            })
+        });
+        const authTypeMap = ['password', 'api-key'];
+        authTypeRow.selected = authTypeMap.indexOf(settings.get_string('auth-type'));
+        authTypeRow.connect('notify::selected', (row) => {
+            settings.set_string('auth-type', authTypeMap[row.selected]);
+            passwordRow.sensitive = row.selected === 0;
+            apiKeyRow.sensitive = row.selected === 1;
+        });
+        connectionGroup.add(authTypeRow);
+
+        // API Key
+        const apiKeyRow = new Adw.PasswordEntryRow({
+            title: _('API Key'),
+            text: settings.get_string('api-key'),
+            sensitive: settings.get_string('auth-type') === 'api-key'
+        });
+        apiKeyRow.connect('changed', (entry) => {
+            settings.set_string('api-key', entry.text);
+        });
+        connectionGroup.add(apiKeyRow);
+
+        // Initialize visibility based on auth type
+        passwordRow.sensitive = settings.get_string('auth-type') === 'password';
+
         // Test connection button
         const testConnectionRow = new Adw.ActionRow({
             title: _('Test Connection'),
@@ -319,21 +353,76 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
 
     _testConnection(settings, callback) {
         const serverUrl = settings.get_string('server-url');
-        const email = settings.get_string('email');
-        const password = settings.get_string('password');
+        const authType = settings.get_string('auth-type');
+        const apiKey = settings.get_string('api-key');
         
-        if (!serverUrl || !email || !password) {
-            callback(false, _('Please fill in all connection fields'), null);
+        if (!serverUrl) {
+            callback(false, _('Please enter server URL'), null);
             return;
         }
 
         const session = new Soup.Session();
-        let authUrl = serverUrl;
-        if (authUrl.endsWith('/')) {
-            authUrl = authUrl.slice(0, -1);
+        let cleanUrl = serverUrl;
+        if (cleanUrl.endsWith('/')) {
+            cleanUrl = cleanUrl.slice(0, -1);
         }
-        authUrl = `${authUrl}/api/auth/login`;
+
+        // API Key authentication - verify by testing the server directly
+        if (authType === 'api-key') {
+            if (!apiKey) {
+                callback(false, _('Please enter API key'), null);
+                return;
+            }
+
+            // Test API key by calling the user endpoint
+            const testUrl = `${cleanUrl}/api/users/me`;
+            let testMessage;
+            try {
+                testMessage = Soup.Message.new('GET', testUrl);
+                testMessage.get_request_headers().append('x-api-key', apiKey);
+            } catch (e) {
+                callback(false, _('Invalid server URL format'), null);
+                return;
+            }
+
+            session.send_and_read_async(testMessage, GLib.PRIORITY_DEFAULT, null, (session, result) => {
+                try {
+                    const responseBytes = session.send_and_read_finish(result);
+                    const status = testMessage.get_status();
+                    
+                    if (status === 0) {
+                        callback(false, _('Could not connect to server'), null);
+                        return;
+                    }
+                    
+                    if (status === 401) {
+                        callback(false, _('Invalid API key'), null);
+                        return;
+                    }
+                    
+                    if (status !== 200) {
+                        callback(false, _('Server error (status %d)').replace('%d', status), null);
+                        return;
+                    }
+
+                    callback(true, null, apiKey);
+                } catch (error) {
+                    callback(false, _('Connection error: %s').replace('%s', error.message || error), null);
+                }
+            });
+            return;
+        }
+
+        // Password authentication
+        const email = settings.get_string('email');
+        const password = settings.get_string('password');
         
+        if (!email || !password) {
+            callback(false, _('Please fill in email and password'), null);
+            return;
+        }
+
+        const authUrl = `${cleanUrl}/api/auth/login`;
         let authMessage;
         try {
             authMessage = Soup.Message.new('POST', authUrl);
@@ -411,7 +500,12 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         const session = new Soup.Session();
         const albumsUrl = `${serverUrl}/api/albums`;
         const albumsMessage = Soup.Message.new('GET', albumsUrl);
-        albumsMessage.get_request_headers().append('Authorization', `Bearer ${token}`);
+        const headers = albumsMessage.get_request_headers();
+        if (settings.get_string('auth-type') === 'api-key') {
+            headers.append('x-api-key', token);
+        } else {
+            headers.append('Authorization', `Bearer ${token}`);
+        }
 
         session.send_and_read_async(albumsMessage, GLib.PRIORITY_DEFAULT, null, (session, result) => {
             try {

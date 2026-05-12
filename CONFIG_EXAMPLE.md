@@ -8,12 +8,29 @@ To test the extension, configure these values in the preferences:
 - **Password**: your_password
 - **Change Interval**: 300 (5 minutes for quick testing)
 
+## Authentication Methods
+
+### Option 1: Email + Password (Default)
+Use your Immich credentials to authenticate:
+- **Email**: your_email@example.com
+- **Password**: your_password
+
+### Option 2: API Key
+You can also authenticate using an API key instead of email/password:
+1. Go to your Immich server settings
+2. Create an API key (Account > API Keys)
+3. In the extension preferences, select "API Key" as the authentication type
+4. Enter your API key
+
+The extension validates the API key by calling `/api/users/me`.
+
 ## Important Notes
 
 1. **Authentication**: The extension uses the Immich API for authentication. Make sure your server is accessible.
 
 2. **API Endpoints Used**:
-   - `POST /api/auth/login` - Authentication
+   - `POST /api/auth/login` - Authentication (password method)
+   - `GET /api/users/me` - Validate API key
    - `GET /api/assets/random?count=100` - Get list of random photos (max 100)
    - `GET /api/albums` - Get user's albums
    - `GET /api/albums/{id}` - Get photos from specific album
@@ -45,3 +62,4 @@ journalctl -f -o cat /usr/bin/gnome-shell
 - Verify that the server URL is correct (without trailing slash)
 - Check that the credentials are valid
 - Make sure the Immich server is accessible from your network
+- If using API key, verify the key is still valid and has not expired
