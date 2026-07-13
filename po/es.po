@@ -51,6 +51,22 @@ msgstr "Intervalo de Cambio (segundos)"
 msgid "Time between wallpaper changes"
 msgstr "Tiempo entre cambios de fondo"
 
+#: prefs.js
+msgid "Image Quality"
+msgstr "Calidad de Imagen"
+
+#: prefs.js
+msgid "Quality of downloaded wallpaper images"
+msgstr "Calidad de las imágenes de fondo descargadas"
+
+#: prefs.js
+msgid "Original (Best quality)"
+msgstr "Original (Mejor calidad)"
+
+#: prefs.js
+msgid "Preview (Faster)"
+msgstr "Previsualización (Más rápido)"
+
 #: prefs.js:99
 msgid "Picture Options"
 msgstr "Opciones de Imagen"

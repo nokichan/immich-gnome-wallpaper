@@ -51,6 +51,22 @@ msgstr "Temps de Interval de Canvi (segons)"
 msgid "Time between wallpaper changes"
 msgstr "Temps entre canvis de fons"
 
+#: prefs.js
+msgid "Image Quality"
+msgstr "Qualitat d'Imatge"
+
+#: prefs.js
+msgid "Quality of downloaded wallpaper images"
+msgstr "Qualitat de les imatges de fons descarregades"
+
+#: prefs.js
+msgid "Original (Best quality)"
+msgstr "Original (Millor qualitat)"
+
+#: prefs.js
+msgid "Preview (Faster)"
+msgstr "Previsualització (Més ràpid)"
+
 #: prefs.js:99
 msgid "Picture Options"
 msgstr "Opcions d'Imatge"
