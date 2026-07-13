@@ -207,6 +207,16 @@ Contributions are welcome. Please open an issue or pull request on the repositor
 
 ## Changelog
 
+### Version 1.3 (July 2026)
+- Immich 3.0 API compatibility fix: migrated to `POST /api/search/random` endpoint
+
+### Version 1.2 (June 2026)
+- Async file operations for better performance
+
+### Version 1.1 (November 2025)
+- True random wallpaper selection
+- Persistent index across suspend/resume
+
 ### Version 1.0 (October 23, 2025)
 - ✅ Initial release with modern GNOME Shell syntax (ES6 modules)
 - ✅ Authentication with Immich server using REST API

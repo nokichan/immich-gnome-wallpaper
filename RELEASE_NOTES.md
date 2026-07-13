@@ -1,3 +1,15 @@
+# Immich Wallpaper v1.3 - Immich 3.0 Compatibility
+
+## Bug Fixes
+
+- **Immich 3.0 API compatibility**: Migrated from deprecated `GET /api/assets/random` to `POST /api/search/random` endpoint, fixing photo fetching on Immich server 3.0+
+
+## Technical Improvements
+
+- Album filtering now uses `albumIds` in the request body instead of a separate API endpoint
+
+---
+
 # Immich Wallpaper v1.2 - Async File Operations
 
 ## 🔧 Technical Improvements
