@@ -50,7 +50,7 @@ export default class ImmichWallpaperExtension extends Extension {
         this._settingsChangedId = this._settings.connect('changed', (settings, key) => {
             if (key === 'show-panel-icon') {
                 this._updateIndicatorVisibility();
-            } else if (key === 'show-notifications') {
+            } else if (key === 'show-notifications' || key === 'image-quality') {
                 // Applied at the next wallpaper change; no restart needed
             } else {
                 this._restartRotation();
@@ -560,8 +560,13 @@ export default class ImmichWallpaperExtension extends Extension {
         if (serverUrl.endsWith('/')) {
             serverUrl = serverUrl.slice(0, -1);
         }
-        // Use the asset/thumbnail endpoint with Bearer token
-        let photoUrl = `${serverUrl}/api/assets/${photo.id}/thumbnail?size=preview`;
+        let quality = this._settings.get_string('image-quality');
+        let photoUrl;
+        if (quality === 'original') {
+            photoUrl = `${serverUrl}/api/assets/${photo.id}/original`;
+        } else {
+            photoUrl = `${serverUrl}/api/assets/${photo.id}/thumbnail?size=preview`;
+        }
         
         let message = Soup.Message.new('GET', photoUrl);
         let headers = message.get_request_headers();

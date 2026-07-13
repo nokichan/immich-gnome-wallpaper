@@ -150,6 +150,24 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
         wallpaperGroup.add(intervalRow);
 
+        // Image quality
+        const qualityRow = new Adw.ComboRow({
+            title: _('Image Quality'),
+            subtitle: _('Quality of downloaded wallpaper images'),
+            model: new Gtk.StringList({
+                strings: [
+                    _('Original (Best quality)'),
+                    _('Preview (Faster)')
+                ]
+            })
+        });
+        const qualityMap = ['original', 'preview'];
+        qualityRow.selected = qualityMap.indexOf(settings.get_string('image-quality'));
+        qualityRow.connect('notify::selected', (row) => {
+            settings.set_string('image-quality', qualityMap[row.selected]);
+        });
+        wallpaperGroup.add(qualityRow);
+
         // Picture options
         const pictureOptionsRow = new Adw.ComboRow({
             title: _('Picture Options'),

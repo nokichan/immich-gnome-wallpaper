@@ -26,6 +26,11 @@
       <summary>API Key</summary>
       <description>API key for Immich authentication (instead of email/password)</description>
     </key>
+    <key name="image-quality" type="s">
+      <default>'original'</default>
+      <summary>Image Quality</summary>
+      <description>Quality of wallpaper images: 'original' (full resolution, best quality) or 'preview' (resized webp, faster download)</description>
+    </key>
     <key name="change-interval" type="i">
       <default>1800</default>
       <range min="60" max="86400"/>
