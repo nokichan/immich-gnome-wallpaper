@@ -36,8 +36,10 @@ echo ""
 
 # 2. Test getting random photos
 echo "2️⃣  Testing random photos endpoint..."
-RANDOM_RESPONSE=$(curl -s "$SERVER_URL/api/assets/random?count=10" \
-    -H "Authorization: Bearer $TOKEN")
+RANDOM_RESPONSE=$(curl -s -X POST "$SERVER_URL/api/search/random" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"type":"IMAGE","size":10}')
 
 PHOTO_COUNT=$(echo "$RANDOM_RESPONSE" | jq '. | length')
 echo "✅ Photos fetched: $PHOTO_COUNT"

@@ -418,23 +418,31 @@ export default class ImmichWallpaperExtension extends Extension {
         }
         
         let albumId = this._settings.get_string('album-id');
-        let apiUrl;
-        
-        if (albumId && albumId.trim() !== '') {
-            // Use specific album
-            apiUrl = `${serverUrl}/api/albums/${albumId.trim()}`;
-            _log(`Immich Wallpaper: Fetching photos from album ${albumId}`);
-        } else {
-            // Use random assets from all albums
-            apiUrl = `${serverUrl}/api/assets/random?count=100`;
-            _log(`Immich Wallpaper: Fetching random photos from all albums`);
-        }
+        let apiUrl = `${serverUrl}/api/search/random`;
         
         _log(`Immich Wallpaper: API URL: ${apiUrl}`);
         
-        let message = Soup.Message.new('GET', apiUrl);
+        let requestBody = {
+            type: 'IMAGE',
+            size: 100,
+        };
+        
+        if (albumId && albumId.trim() !== '') {
+            requestBody.albumIds = [albumId.trim()];
+            _log(`Immich Wallpaper: Fetching random photos from album ${albumId}`);
+        } else {
+            _log(`Immich Wallpaper: Fetching random photos from all albums`);
+        }
+        
+        let message = Soup.Message.new('POST', apiUrl);
         let headers = message.get_request_headers();
         this._addAuthHeader(headers, this._accessToken);
+        headers.append('Content-Type', 'application/json');
+        
+        message.set_request_body_from_bytes(
+            'application/json',
+            new GLib.Bytes(JSON.stringify(requestBody))
+        );
         
         this._session.send_and_read_async(
             message,
@@ -448,12 +456,8 @@ export default class ImmichWallpaperExtension extends Extension {
                     
                     if (message.get_status() === 200) {
                         let response = JSON.parse(responseText);
-                        // Response from /api/assets/random is an array
-                        // Response from /api/albums/{id} is {assets: [...]}
                         if (Array.isArray(response)) {
                             this._photoList = response.filter(asset => asset.type === 'IMAGE');
-                        } else if (response.assets && Array.isArray(response.assets)) {
-                            this._photoList = response.assets.filter(asset => asset.type === 'IMAGE');
                         } else {
                             _log(`Immich Wallpaper: Unexpected response format`);
                             this._photoList = [];
@@ -462,7 +466,6 @@ export default class ImmichWallpaperExtension extends Extension {
                         _log(`Immich Wallpaper: Fetched ${this._photoList.length} photos`);
                         
                         if (this._photoList.length > 0) {
-                            // Validate index is within range after loading photos
                             this._validateCurrentIndex();
                             callback();
                         } else {
