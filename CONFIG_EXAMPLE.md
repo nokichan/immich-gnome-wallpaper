@@ -18,9 +18,15 @@ Use your Immich credentials to authenticate:
 ### Option 2: API Key
 You can also authenticate using an API key instead of email/password:
 1. Go to your Immich server settings
-2. Create an API key (Account > API Keys)
-3. In the extension preferences, select "API Key" as the authentication type
-4. Enter your API key
+2. Create an API key
+   - Go to Account > API Keys > New API Key
+   - Select:
+     - `asset.read`, `asset.download`, `asset.view`
+     - `album.read`
+     - `user.read`
+  - Copy the API key. API keys look like this: `TI9Y9FR8QV69nlAhagYdowxmBLuc8aLbgyH5BiHx4`
+4. In the extension preferences, select "API Key" as the authentication type
+5. Enter your API key.
 
 The extension validates the API key by calling `/api/users/me`.
 
