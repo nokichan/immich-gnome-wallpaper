@@ -207,6 +207,11 @@ Contributions are welcome. Please open an issue or pull request on the repositor
 
 ## Changelog
 
+### Version 1.5 (October 2026)
+- GNOME Shell 51 compatibility
+- Deferred wallpaper setting to an idle callback
+- Fixed notification source cleanup when the shell destroys it
+
 ### Version 1.3 (July 2026)
 - Immich 3.0 API compatibility fix: migrated to `POST /api/search/random` endpoint
 

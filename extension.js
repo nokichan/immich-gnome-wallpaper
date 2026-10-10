@@ -4,7 +4,6 @@ import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import Soup from 'gi://Soup';
 import St from 'gi://St';
-import Clutter from 'gi://Clutter';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
@@ -606,26 +605,29 @@ export default class ImmichWallpaperExtension extends Extension {
     }
 
     _setWallpaper(filepath) {
-        try {
-            let backgroundSettings = new Gio.Settings({
-                schema: 'org.gnome.desktop.background'
-            });
-            
-            let pictureOptions = this._settings.get_string('picture-options');
-            let backgroundColor = this._settings.get_string('background-color');
-            let uri = `file://${filepath}`;
-            
-            backgroundSettings.set_string('picture-uri', uri);
-            backgroundSettings.set_string('picture-uri-dark', uri);
-            backgroundSettings.set_string('picture-options', pictureOptions);
-            backgroundSettings.set_string('primary-color', backgroundColor);
-            
-            _log(`Immich Wallpaper: Set wallpaper to ${filepath}`);
-            _log(`Immich Wallpaper: Picture options: ${pictureOptions}`);
-            _log(`Immich Wallpaper: Background color: ${backgroundColor}`);
-        } catch (e) {
-            _log(`Immich Wallpaper: Error setting wallpaper: ${e}`);
-        }
+        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            try {
+                let backgroundSettings = new Gio.Settings({
+                    schema: 'org.gnome.desktop.background'
+                });
+                
+                let pictureOptions = this._settings.get_string('picture-options');
+                let backgroundColor = this._settings.get_string('background-color');
+                let uri = `file://${filepath}`;
+                
+                backgroundSettings.set_string('picture-uri', uri);
+                backgroundSettings.set_string('picture-uri-dark', uri);
+                backgroundSettings.set_string('picture-options', pictureOptions);
+                backgroundSettings.set_string('primary-color', backgroundColor);
+                
+                _log(`Immich Wallpaper: Set wallpaper to ${filepath}`);
+                _log(`Immich Wallpaper: Picture options: ${pictureOptions}`);
+                _log(`Immich Wallpaper: Background color: ${backgroundColor}`);
+            } catch (e) {
+                _log(`Immich Wallpaper: Error setting wallpaper: ${e}`);
+            }
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _fetchPhotoMetadata(photo) {
@@ -683,6 +685,9 @@ export default class ImmichWallpaperExtension extends Extension {
             this._notificationSource = new MessageTray.Source({
                 title: 'Immich Wallpaper',
                 iconName: 'image-x-generic-symbolic'
+            });
+            this._notificationSource.connect('destroy', () => {
+                this._notificationSource = null;
             });
             Main.messageTray.add(this._notificationSource);
         }
