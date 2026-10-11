@@ -229,6 +229,11 @@ Contributions are welcome. Please open an issue or pull request on the repositor
 
 ## Changelog
 
+### Version 1.6 (October 2026)
+- Fixed the selected album being reset when the album list was reloaded
+- Preferences now show the extension version and links to the homepage, configuration help and bug tracker
+- Added a test suite (`./run-tests.sh`) and GitHub Actions workflow
+
 ### Version 1.5 (October 2026)
 - GNOME Shell 51 compatibility
 - Deferred wallpaper setting to an idle callback
