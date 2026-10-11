@@ -294,3 +294,31 @@ msgstr "Si us plau introduïu correu i contrasenya"
 #: prefs.js
 msgid "Invalid API key"
 msgstr "Clau API invàlida"
+
+#: prefs.js
+msgid "About"
+msgstr "Quant a"
+
+#: prefs.js
+msgid "Extension Version"
+msgstr "Versió de l'extensió"
+
+#: prefs.js
+msgid "Homepage"
+msgstr "Pàgina web"
+
+#: prefs.js
+msgid "Configuration Help"
+msgstr "Ajuda de configuració"
+
+#: prefs.js
+msgid "Open the configuration guide"
+msgstr "Obre la guia de configuració"
+
+#: prefs.js
+msgid "Report a Bug"
+msgstr "Informeu d'un error"
+
+#: prefs.js
+msgid "Open an issue on GitHub"
+msgstr "Obriu un problema a GitHub"

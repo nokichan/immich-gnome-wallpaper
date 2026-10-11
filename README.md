@@ -65,7 +65,10 @@ Or use the **Extensions** application from the application menu.
 
 ## Configuration
 
-1. Open the **Extensions** application or run:
+1. Open the extension preferences:
+
+   - From the **Extensions** application: click the gear icon (⚙️) next to "Immich Wallpaper".
+   - Or from a terminal:
 
 ```bash
 gnome-extensions prefs immich-wallpaper@nokichan.github.io

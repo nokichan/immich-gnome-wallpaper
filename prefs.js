@@ -378,6 +378,48 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         
         // Load albums asynchronously
         this._loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection);
+
+        // About section: version and useful links
+        const aboutGroup = new Adw.PreferencesGroup({
+            title: _('About'),
+        });
+        page.add(aboutGroup);
+
+        const versionRow = new Adw.ActionRow({
+            title: _('Extension Version'),
+            subtitle: this.metadata.version.toString(),
+        });
+        aboutGroup.add(versionRow);
+
+        const homepageRow = new Adw.ActionRow({
+            title: _('Homepage'),
+            subtitle: this.metadata.url,
+            activatable: true,
+        });
+        homepageRow.connect('activated', () => {
+            Gio.AppInfo.launch_default_for_uri(this.metadata.url, null);
+        });
+        aboutGroup.add(homepageRow);
+
+        const helpRow = new Adw.ActionRow({
+            title: _('Configuration Help'),
+            subtitle: _('Open the configuration guide'),
+            activatable: true,
+        });
+        helpRow.connect('activated', () => {
+            Gio.AppInfo.launch_default_for_uri(`${this.metadata.url}/blob/main/CONFIG_EXAMPLE.md`, null);
+        });
+        aboutGroup.add(helpRow);
+
+        const bugReportRow = new Adw.ActionRow({
+            title: _('Report a Bug'),
+            subtitle: _('Open an issue on GitHub'),
+            activatable: true,
+        });
+        bugReportRow.connect('activated', () => {
+            Gio.AppInfo.launch_default_for_uri(`${this.metadata.url}/issues`, null);
+        });
+        aboutGroup.add(bugReportRow);
     }
 
     _testConnection(settings, callback) {
