@@ -25,6 +25,8 @@ import Gdk from 'gi://Gdk';
 
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
+import {AlbumSelection} from './albumSelection.js';
+
 export default class ImmichWallpaperPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
@@ -325,6 +327,15 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
 
         // Store album IDs (index 0 is empty for "All Photos")
         const albumIds = [''];
+
+        // Keep the stored album in sync with the combo row. The handler is
+        // connected as soon as the row exists, so selections made while the
+        // album list is still loading cannot be lost.
+        const albumSelection = new AlbumSelection({
+            row: albumRow,
+            albumIds,
+            onChange: (albumId) => settings.set_string('album-id', albumId),
+        });
         
         // Connect test connection button
         testConnectionButton.connect('clicked', () => {
@@ -341,7 +352,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                     testConnectionRow.subtitle = _('Connection successful!');
                     
                     // Automatically refresh albums on successful connection
-                    this._refreshAlbums(settings, albumModel, albumRow, albumIds, token);
+                    this._refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token);
                 } else {
                     connectionStatusIcon.icon_name = 'dialog-error-symbolic';
                     testConnectionRow.subtitle = message || _('Connection failed');
@@ -358,7 +369,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                 refreshAlbumsButton.sensitive = true;
                 
                 if (success) {
-                    this._refreshAlbums(settings, albumModel, albumRow, albumIds, token);
+                    this._refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token);
                 } else {
                     albumRow.subtitle = message || _('Connection failed');
                 }
@@ -366,7 +377,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
         
         // Load albums asynchronously
-        this._loadAlbums(settings, albumModel, albumRow, albumIds);
+        this._loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection);
     }
 
     _testConnection(settings, callback) {
@@ -503,17 +514,21 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
     }
 
-    _refreshAlbums(settings, albumModel, albumRow, albumIds, token) {
+    _refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token) {
         let serverUrl = settings.get_string('server-url');
         if (serverUrl.endsWith('/')) {
             serverUrl = serverUrl.slice(0, -1);
         }
         
-        // Clear existing albums (except "All Photos")
-        while (albumModel.get_n_items() > 1) {
-            albumModel.remove(1);
-        }
-        albumIds.length = 1; // Keep only the first empty string
+        // Clear existing albums (except "All Photos"). This runs inside
+        // update() so the row adjusting its selection cannot overwrite the
+        // stored album.
+        albumSelection.update(() => {
+            while (albumModel.get_n_items() > 1) {
+                albumModel.remove(1);
+            }
+            albumIds.length = 1; // Keep only the first empty string
+        });
         
         const session = new Soup.Session();
         const albumsUrl = `${serverUrl}/api/albums`;
@@ -539,19 +554,21 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                 // Sort albums by name
                 albums.sort((a, b) => a.albumName.localeCompare(b.albumName));
                 
-                // Add albums to the model
-                for (const album of albums) {
-                    const displayName = `${album.albumName} (${album.assetCount} photos)`;
-                    albumModel.append(displayName);
-                    albumIds.push(album.id);
-                }
+                albumSelection.update(() => {
+                    // Add albums to the model
+                    for (const album of albums) {
+                        const displayName = `${album.albumName} (${album.assetCount} photos)`;
+                        albumModel.append(displayName);
+                        albumIds.push(album.id);
+                    }
 
-                // Set current selection
-                const currentAlbumId = settings.get_string('album-id');
-                const currentIndex = albumIds.indexOf(currentAlbumId);
-                if (currentIndex !== -1) {
-                    albumRow.selected = currentIndex;
-                }
+                    // Restore the stored album, or fall back to "All Photos"
+                    // when the album no longer exists on the server
+                    if (!albumSelection.select(settings.get_string('album-id'))) {
+                        albumSelection.select('');
+                        settings.set_string('album-id', '');
+                    }
+                });
 
                 // Update subtitle
                 albumRow.subtitle = _('%d albums available').replace('%d', albums.length);
@@ -563,17 +580,11 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
     }
 
-    _loadAlbums(settings, albumModel, albumRow, albumIds) {
+    _loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection) {
         // Use _testConnection to authenticate and then _refreshAlbums to load albums
         this._testConnection(settings, (success, message, token) => {
             if (success) {
-                // Connect selection change handler before loading albums
-                albumRow.connect('notify::selected', (row) => {
-                    const selectedId = albumIds[row.selected];
-                    settings.set_string('album-id', selectedId);
-                });
-                
-                this._refreshAlbums(settings, albumModel, albumRow, albumIds, token);
+                this._refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token);
             } else {
                 albumRow.subtitle = message || _('Please configure server connection first');
             }
