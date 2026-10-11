@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gjs \
+            libgtk-4-1 \
+            gir1.2-gtk-4.0 \
+            gir1.2-adw-1 \
+            libglib2.0-bin \
+            gettext \
+            xvfb \
+            nodejs \
+            python3
+
+      - name: Install shexli (static analysis)
+        run: |
+          # tree-sitter 0.26 crashes shexli with a segmentation fault
+          pip install shexli==0.2.1 tree-sitter==0.25.0
+
+      - name: Run test suite
+        run: ./run-tests.sh

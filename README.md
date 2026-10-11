@@ -147,6 +147,7 @@ gnome-extensions list --enabled | grep immich-wallpaper
 immich-wallpaper@nokichan.github.io/
 ├── extension.js          # Main extension logic
 ├── prefs.js             # Preferences interface
+├── albumSelection.js    # Album selection helper
 ├── metadata.json        # Extension metadata
 ├── schemas/
 │   └── org.gnome.shell.extensions.immich-wallpaper.gschema.xml
@@ -155,6 +156,8 @@ immich-wallpaper@nokichan.github.io/
 │   ├── ca.po           # Catalan
 │   ├── LINGUAS
 │   └── POTFILES
+├── tests/               # Regression tests
+├── run-tests.sh         # Test suite entry point
 └── README.md
 ```
 
@@ -185,15 +188,31 @@ Or to see all GNOME Shell logs:
 journalctl -f -o cat /usr/bin/gnome-shell
 ```
 
+### Testing
+
+Run the test suite (JavaScript syntax checks, metadata and schema
+validation, translation checks, static analysis with `shexli` when
+installed, and GTK regression tests):
+
+```bash
+./run-tests.sh
+```
+
+The GTK regression tests use `xvfb-run` when no display is available.
+Missing optional tools are reported as skipped, not as failures. The
+same suite runs on every push and pull request through GitHub Actions.
+
 ## Immich API Used
 
 The extension uses the following Immich API endpoints:
 
-- `POST /api/auth/login` - Authentication
-- `GET /api/assets/random` - Get random photos list
+- `POST /api/auth/login` - Authentication (email + password)
+- `GET /api/users/me` - Validate API key
+- `POST /api/search/random` - Get random photos list
 - `GET /api/albums` - Get user's albums
-- `GET /api/albums/{id}` - Get photos from specific album
-- `GET /api/assets/{id}/thumbnail` - Download photo
+- `GET /api/assets/{id}` - Get photo metadata
+- `GET /api/assets/{id}/thumbnail?size=preview` - Download photo (preview quality)
+- `GET /api/assets/{id}/original` - Download photo (original quality)
 
 ## License
 
