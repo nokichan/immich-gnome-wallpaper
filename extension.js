@@ -31,6 +31,8 @@ export default class ImmichWallpaperExtension extends Extension {
         this._photoList = [];
         this._currentIndex = 0;
         this._notificationSource = null;
+        this._notificationSourceDestroyId = null;
+        this._wallpaperIdleId = null;
         this._indicator = null;
         this._currentPhotoMetadata = null;
         
@@ -70,6 +72,11 @@ export default class ImmichWallpaperExtension extends Extension {
             this._retryTimeoutId = null;
         }
         
+        if (this._wallpaperIdleId) {
+            GLib.source_remove(this._wallpaperIdleId);
+            this._wallpaperIdleId = null;
+        }
+        
         if (this._settingsChangedId) {
             this._settings.disconnect(this._settingsChangedId);
             this._settingsChangedId = null;
@@ -77,6 +84,11 @@ export default class ImmichWallpaperExtension extends Extension {
         
         if (this._session) {
             this._session.abort();
+        }
+        
+        if (this._notificationSourceDestroyId) {
+            this._notificationSource.disconnect(this._notificationSourceDestroyId);
+            this._notificationSourceDestroyId = null;
         }
         
         if (this._notificationSource) {
@@ -614,7 +626,13 @@ export default class ImmichWallpaperExtension extends Extension {
     }
 
     _setWallpaper(filepath) {
-        GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+        if (this._wallpaperIdleId) {
+            GLib.source_remove(this._wallpaperIdleId);
+            this._wallpaperIdleId = null;
+        }
+
+        this._wallpaperIdleId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+            this._wallpaperIdleId = null;
             try {
                 let backgroundSettings = new Gio.Settings({
                     schema: 'org.gnome.desktop.background'
@@ -695,8 +713,9 @@ export default class ImmichWallpaperExtension extends Extension {
                 title: 'Immich Wallpaper',
                 iconName: 'image-x-generic-symbolic'
             });
-            this._notificationSource.connect('destroy', () => {
+            this._notificationSourceDestroyId = this._notificationSource.connect('destroy', () => {
                 this._notificationSource = null;
+                this._notificationSourceDestroyId = null;
             });
             Main.messageTray.add(this._notificationSource);
         }

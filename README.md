@@ -229,6 +229,10 @@ Contributions are welcome. Please open an issue or pull request on the repositor
 
 ## Changelog
 
+### Version 1.6.2 (October 2026)
+- Fixed both lifecycle warnings from the EGO review: the notification source "destroy" signal is now disconnected in `disable()`, and the wallpaper idle source is removed if it is still pending
+- The test suite now parses the shexli JSON report (shexli exits 0 even with findings) and documents the known EGO-M-004 false positive caused by shexli's version data lagging behind GNOME Shell 51
+
 ### Version 1.6.1 (October 2026)
 - Panel menu now includes a "Settings" entry that opens the extension preferences
 - Panel menu and location notification strings are now translatable (Spanish and Catalan translations updated)

@@ -96,21 +96,26 @@ fi
 # ------------------------------------------------------------------- shexli
 # Static analysis against the EGO review guidelines. The package layout is
 # what extensions.gnome.org receives, so only build the zip and check that.
+# shexli always exits 0 (even with findings), so the JSON report is parsed
+# by tests/check-shexli.py instead of trusting the exit code.
 # Install with: pip install shexli==0.2.1 tree-sitter==0.25.0
 # (tree-sitter 0.26 makes shexli crash with a segmentation fault)
-if command -v shexli >/dev/null 2>&1; then
+if command -v shexli >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
     if ./package.sh >/dev/null 2>&1; then
-        if shexli --format text build/immich-wallpaper@nokichan.github.io.zip >/dev/null 2>&1; then
+        report=$(mktemp)
+        shexli --format json build/immich-wallpaper@nokichan.github.io.zip > "$report" 2>/dev/null
+        if python3 tests/check-shexli.py "$report"; then
             ok "shexli static analysis"
         else
             fail "shexli static analysis"
             shexli --format text build/immich-wallpaper@nokichan.github.io.zip || true
         fi
+        rm -f "$report"
     else
         fail "package.sh (needed for shexli)"
     fi
 else
-    skip "shexli static analysis (shexli not installed)"
+    skip "shexli static analysis (shexli or python3 not installed)"
 fi
 
 # -------------------------------------------------------------- GTK tests
