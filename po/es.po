@@ -255,6 +255,18 @@ msgstr "Siguiente Fondo"
 msgid "No description available"
 msgstr "Sin descripción disponible"
 
+#: extension.js
+msgid "Settings"
+msgstr "Configuración"
+
+#: extension.js
+msgid "Photo Location"
+msgstr "Ubicación de la foto"
+
+#: extension.js
+msgid "Open in Map"
+msgstr "Abrir en el mapa"
+
 #: prefs.js
 msgid "Show Notifications"
 msgstr "Mostrar Notificaciones"

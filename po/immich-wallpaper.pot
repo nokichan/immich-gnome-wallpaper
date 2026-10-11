@@ -241,6 +241,18 @@ msgstr ""
 msgid "No description available"
 msgstr ""
 
+#: extension.js
+msgid "Settings"
+msgstr ""
+
+#: extension.js
+msgid "Photo Location"
+msgstr ""
+
+#: extension.js
+msgid "Open in Map"
+msgstr ""
+
 #: prefs.js
 msgid "Show Notifications"
 msgstr ""

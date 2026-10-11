@@ -229,6 +229,10 @@ Contributions are welcome. Please open an issue or pull request on the repositor
 
 ## Changelog
 
+### Version 1.7 (October 2026)
+- Panel menu now includes a "Settings" entry that opens the extension preferences
+- Panel menu and location notification strings are now translatable (Spanish and Catalan translations updated)
+
 ### Version 1.6 (October 2026)
 - Fixed the selected album being reset when the album list was reloaded
 - Preferences now show the extension version and links to the homepage, configuration help and bug tracker

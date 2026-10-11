@@ -9,7 +9,7 @@ import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const DEBUG = false;
 
@@ -119,7 +119,7 @@ export default class ImmichWallpaperExtension extends Extension {
         this._indicator.add_child(icon);
         
         // Menu items
-        this._descriptionItem = new PopupMenu.PopupMenuItem('No photo loaded', {
+        this._descriptionItem = new PopupMenu.PopupMenuItem(_('No photo loaded'), {
             reactive: false,
             style_class: 'immich-description-item',
         });
@@ -130,7 +130,7 @@ export default class ImmichWallpaperExtension extends Extension {
         
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         
-        this._locationItem = new PopupMenu.PopupMenuItem('No location available');
+        this._locationItem = new PopupMenu.PopupMenuItem(_('No location available'));
         this._locationItem.connect('activate', () => {
             if (this._currentPhotoMetadata && this._currentPhotoMetadata.exifInfo) {
                 let exif = this._currentPhotoMetadata.exifInfo;
@@ -147,11 +147,20 @@ export default class ImmichWallpaperExtension extends Extension {
         this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         
         // Next wallpaper button
-        let nextItem = new PopupMenu.PopupMenuItem('Next Wallpaper');
+        let nextItem = new PopupMenu.PopupMenuItem(_('Next Wallpaper'));
         nextItem.connect('activate', () => {
             this._changeWallpaper();
         });
         this._indicator.menu.addMenuItem(nextItem);
+        
+        this._indicator.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        
+        // Settings button
+        let settingsItem = new PopupMenu.PopupMenuItem(_('Settings'));
+        settingsItem.connect('activate', () => {
+            this.openPreferences();
+        });
+        this._indicator.menu.addMenuItem(settingsItem);
         
         Main.panel.addToStatusArea('immich-wallpaper', this._indicator);
         
@@ -178,7 +187,7 @@ export default class ImmichWallpaperExtension extends Extension {
         } else if (metadata.originalFileName) {
             this._descriptionItem.label.text = metadata.originalFileName;
         } else {
-            this._descriptionItem.label.text = 'No description available';
+            this._descriptionItem.label.text = _('No description available');
         }
         
         // Update location
@@ -188,11 +197,11 @@ export default class ImmichWallpaperExtension extends Extension {
                 this._locationItem.label.text = `📍 ${locationText}`;
                 this._locationItem.setSensitive(true);
             } else {
-                this._locationItem.label.text = 'No location available';
+                this._locationItem.label.text = _('No location available');
                 this._locationItem.setSensitive(false);
             }
         } else {
-            this._locationItem.label.text = 'No location available';
+            this._locationItem.label.text = _('No location available');
             this._locationItem.setSensitive(false);
         }
     }
@@ -695,7 +704,7 @@ export default class ImmichWallpaperExtension extends Extension {
         // Create notification
         let notification = new MessageTray.Notification({
             source: this._notificationSource,
-            title: 'Photo Location',
+            title: _('Photo Location'),
             body: locationText,
             isTransient: true
         });
@@ -704,7 +713,7 @@ export default class ImmichWallpaperExtension extends Extension {
         let mapProvider = this._settings.get_string('map-provider');
         let mapUrl = this._buildMapUrl(exifInfo.latitude, exifInfo.longitude, mapProvider);
         
-        notification.addAction('Open in Map', () => {
+        notification.addAction(_('Open in Map'), () => {
             Gio.AppInfo.launch_default_for_uri(mapUrl, null);
         });
         

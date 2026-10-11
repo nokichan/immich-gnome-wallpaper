@@ -255,6 +255,18 @@ msgstr "Següent Fons"
 msgid "No description available"
 msgstr "Sense descripció disponible"
 
+#: extension.js
+msgid "Settings"
+msgstr "Configuració"
+
+#: extension.js
+msgid "Photo Location"
+msgstr "Ubicació de la foto"
+
+#: extension.js
+msgid "Open in Map"
+msgstr "Obrir al mapa"
+
 #: prefs.js
 msgid "Show Notifications"
 msgstr "Mostrar Notificacions"
