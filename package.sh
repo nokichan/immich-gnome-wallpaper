@@ -17,6 +17,7 @@ echo "📋 Copying files..."
 cp extension.js "$PACKAGE_DIR/"
 cp prefs.js "$PACKAGE_DIR/"
 cp albumSelection.js "$PACKAGE_DIR/"
+cp peopleFilter.js "$PACKAGE_DIR/"
 cp metadata.json "$PACKAGE_DIR/"
 
 # Copy schemas

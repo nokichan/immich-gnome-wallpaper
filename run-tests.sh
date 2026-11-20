@@ -9,7 +9,8 @@
 #   4. GSettings schema compilation (glib-compile-schemas --strict)
 #   5. Translation checks (msgfmt)
 #   6. Static analysis with shexli on the packaged zip (optional)
-#   7. GTK regression tests in tests/ (gjs, uses xvfb-run when needed)
+#   7. Unit tests in tests/ (gjs)
+#   8. GTK regression tests in tests/ (gjs, uses xvfb-run when needed)
 #
 # Missing optional tools are reported as "skip", never as failures.
 #
@@ -27,7 +28,7 @@ ok()   { echo "ok - $1"; PASS=$((PASS + 1)); }
 fail() { echo "not ok - $1"; FAIL=$((FAIL + 1)); }
 skip() { echo "skip - $1"; SKIP=$((SKIP + 1)); }
 
-JS_FILES=(extension.js prefs.js albumSelection.js)
+JS_FILES=(extension.js prefs.js albumSelection.js peopleFilter.js)
 
 # ---------------------------------------------------------------- JS syntax
 if command -v node >/dev/null 2>&1; then
@@ -116,6 +117,17 @@ if command -v shexli >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
     fi
 else
     skip "shexli static analysis (shexli or python3 not installed)"
+fi
+
+# -------------------------------------------------------------- unit tests
+if command -v gjs >/dev/null 2>&1; then
+    if gjs -m tests/test-people-filter.js; then
+        PASS=$((PASS + 1))
+    else
+        FAIL=$((FAIL + 1))
+    fi
+else
+    skip "people filter tests (gjs not installed)"
 fi
 
 # -------------------------------------------------------------- GTK tests
