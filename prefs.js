@@ -26,6 +26,7 @@ import Gdk from 'gi://Gdk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {AlbumSelection} from './albumSelection.js';
+import {PeoplePicker} from './peoplePicker.js';
 
 export default class ImmichWallpaperPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -340,13 +341,13 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         // Create a group for the people filter
         const peopleGroup = new Adw.PreferencesGroup({
             title: _('People Filter'),
-            description: _('Show or hide photos of specific people. Only named people are listed.'),
+            description: _('Show or hide photos of specific people. People hidden in Immich still appear in your photos, so they are listed too.'),
         });
         page.add(peopleGroup);
 
         const includePeopleRow = new Adw.ExpanderRow({
             title: _('Show Photos Of'),
-            subtitle: _('Loading people...'),
+            use_markup: false,
         });
         peopleGroup.add(includePeopleRow);
 
@@ -360,15 +361,27 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
 
         const excludePeopleRow = new Adw.ExpanderRow({
             title: _('Hide Photos Of'),
-            subtitle: _('Loading people...'),
+            use_markup: false,
         });
         peopleGroup.add(excludePeopleRow);
 
         const peopleUi = {
-            includeRow: includePeopleRow,
-            excludeRow: excludePeopleRow,
-            rows: [],
-            names: new Map(),
+            pickers: [
+                new PeoplePicker({
+                    expander: includePeopleRow,
+                    settings,
+                    key: 'person-ids',
+                    emptyText: _('Everyone (no filter)'),
+                    gettext: _,
+                }),
+                new PeoplePicker({
+                    expander: excludePeopleRow,
+                    settings,
+                    key: 'excluded-person-ids',
+                    emptyText: _('Nobody'),
+                    gettext: _,
+                }),
+            ],
             generation: 0,
         };
 
@@ -667,10 +680,15 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                 this._refreshPeople(settings, peopleUi, token);
             } else {
                 albumRow.subtitle = message || _('Please configure server connection first');
-                peopleUi.includeRow.subtitle = albumRow.subtitle;
-                peopleUi.excludeRow.subtitle = albumRow.subtitle;
+                this._setPeopleStatus(peopleUi, albumRow.subtitle);
             }
         });
+    }
+
+    _setPeopleStatus(peopleUi, text) {
+        for (const picker of peopleUi.pickers) {
+            picker.comboRow.subtitle = text;
+        }
     }
 
     _refreshPeople(settings, peopleUi, token) {
@@ -679,23 +697,18 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
             serverUrl = serverUrl.slice(0, -1);
         }
 
-        for (const [expander, row] of peopleUi.rows) {
-            expander.remove(row);
-        }
-        peopleUi.rows = [];
-
         // Ignore responses of an older refresh (e.g. "Test" clicked twice)
         const generation = ++peopleUi.generation;
-        peopleUi.names.clear();
-        peopleUi.includeRow.subtitle = _('Loading people...');
-        peopleUi.excludeRow.subtitle = _('Loading people...');
+        this._setPeopleStatus(peopleUi, _('Loading people...'));
 
         const session = new Soup.Session();
         const people = [];
 
-        // /api/people is paginated; unnamed faces are skipped later
+        // /api/people is paginated. Hidden people are included on purpose:
+        // hiding only removes them from Immich's people page, their photos
+        // still show up everywhere else.
         const fetchPage = (pageNumber) => {
-            const url = `${serverUrl}/api/people?withHidden=false&size=1000&page=${pageNumber}`;
+            const url = `${serverUrl}/api/people?withHidden=true&size=1000&page=${pageNumber}`;
             const message = Soup.Message.new('GET', url);
             const headers = message.get_request_headers();
             if (settings.get_string('auth-type') === 'api-key') {
@@ -713,8 +726,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                     const bytes = session.send_and_read_finish(result);
 
                     if (message.get_status() !== 200) {
-                        peopleUi.includeRow.subtitle = _('Failed to load people');
-                        peopleUi.excludeRow.subtitle = _('Failed to load people');
+                        this._setPeopleStatus(peopleUi, _('Failed to load people'));
                         return;
                     }
 
@@ -723,69 +735,20 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
 
                     if (response.hasNextPage && pageNumber < 50) {
                         fetchPage(pageNumber + 1);
-                    } else {
-                        this._populatePeople(settings, peopleUi, people);
+                        return;
                     }
+
+                    for (const picker of peopleUi.pickers) {
+                        picker.setPeople(people);
+                    }
+                    this._setPeopleStatus(peopleUi, _('Type to search'));
                 } catch (error) {
                     console.error('Error loading people:', error);
-                    peopleUi.includeRow.subtitle = _('Error loading people');
-                    peopleUi.excludeRow.subtitle = _('Error loading people');
+                    this._setPeopleStatus(peopleUi, _('Error loading people'));
                 }
             });
         };
 
         fetchPage(1);
-    }
-
-    _populatePeople(settings, peopleUi, people) {
-        const named = people.filter(person => person.name && person.name.trim() !== '');
-        named.sort((a, b) => a.name.localeCompare(b.name));
-
-        for (const person of named) {
-            peopleUi.names.set(person.id, person.name);
-        }
-
-        const addRows = (expander, key) => {
-            const selected = settings.get_strv(key);
-
-            for (const person of named) {
-                const row = new Adw.SwitchRow({
-                    title: person.name,
-                    use_markup: false,
-                    active: selected.includes(person.id),
-                });
-                row.connect('notify::active', () => {
-                    // Keep ids that are not listed (e.g. unnamed people set
-                    // via gsettings), only toggle this person
-                    const ids = settings.get_strv(key).filter(id => id !== person.id);
-                    if (row.active) {
-                        ids.push(person.id);
-                    }
-                    settings.set_strv(key, ids);
-                    this._updatePeopleSubtitles(settings, peopleUi);
-                });
-                expander.add_row(row);
-                peopleUi.rows.push([expander, row]);
-            }
-        };
-
-        addRows(peopleUi.includeRow, 'person-ids');
-        addRows(peopleUi.excludeRow, 'excluded-person-ids');
-
-        this._updatePeopleSubtitles(settings, peopleUi);
-    }
-
-    _updatePeopleSubtitles(settings, peopleUi) {
-        const describe = (ids, emptyText) => {
-            if (ids.length === 0) {
-                return emptyText;
-            }
-            return ids.map(id => peopleUi.names.get(id) || _('Unknown person')).join(', ');
-        };
-
-        peopleUi.includeRow.subtitle = describe(settings.get_strv('person-ids'),
-            _('Everyone (no filter)'));
-        peopleUi.excludeRow.subtitle = describe(settings.get_strv('excluded-person-ids'),
-            _('Nobody'));
     }
 }

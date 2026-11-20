@@ -98,10 +98,12 @@ gnome-extensions prefs immich-wallpaper@nokichan.github.io
      - The extension will automatically load your available albums
      - Select "All Photos (no filter)" to use random photos from all albums
      - Select any specific album to only use photos from that album
-   - **People Filter**: Lists the people you have named in Immich
+   - **People Filter**: Pick people from a searchable dropdown (type a name to filter it) or add them by ID
      - **Show Photos Of**: Only use photos containing any of the selected people (nothing selected = no filter)
      - **Require All Selected People**: Only use photos where all selected people appear together
      - **Hide Photos Of**: Never use photos containing one of these people
+     - People hidden in Immich are listed too (marked "hidden in Immich"): hiding a person only removes them from Immich's people page, their photos are still used
+     - People without a name can be added with **Add by ID**; pasting the URL of their Immich people page works too
      - The people filter can be combined with an album
 
 3. Save the configuration and the extension will start working automatically.
@@ -155,6 +157,7 @@ immich-wallpaper@nokichan.github.io/
 ├── prefs.js             # Preferences interface
 ├── albumSelection.js    # Album selection helper
 ├── peopleFilter.js      # People filter (search requests + result filtering)
+├── peoplePicker.js      # People picker widget for the preferences
 ├── metadata.json        # Extension metadata
 ├── schemas/
 │   └── org.gnome.shell.extensions.immich-wallpaper.gschema.xml
