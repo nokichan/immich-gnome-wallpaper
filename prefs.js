@@ -26,6 +26,7 @@ import Gdk from 'gi://Gdk';
 import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import {AlbumSelection} from './albumSelection.js';
+import {PeoplePicker} from './peoplePicker.js';
 
 export default class ImmichWallpaperPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -337,6 +338,53 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
             onChange: (albumId) => settings.set_string('album-id', albumId),
         });
         
+        // Create a group for the people filter
+        const peopleGroup = new Adw.PreferencesGroup({
+            title: _('People Filter'),
+            description: _('Show or hide photos of specific people. People hidden in Immich still appear in your photos, so they are listed too.'),
+        });
+        page.add(peopleGroup);
+
+        const includePeopleRow = new Adw.ExpanderRow({
+            title: _('Show Photos Of'),
+            use_markup: false,
+        });
+        peopleGroup.add(includePeopleRow);
+
+        const requireAllPeopleRow = new Adw.SwitchRow({
+            title: _('Require All Selected People'),
+            subtitle: _('Only show photos where all selected people appear together'),
+        });
+        settings.bind('require-all-people', requireAllPeopleRow, 'active',
+            Gio.SettingsBindFlags.DEFAULT);
+        peopleGroup.add(requireAllPeopleRow);
+
+        const excludePeopleRow = new Adw.ExpanderRow({
+            title: _('Hide Photos Of'),
+            use_markup: false,
+        });
+        peopleGroup.add(excludePeopleRow);
+
+        const peopleUi = {
+            pickers: [
+                new PeoplePicker({
+                    expander: includePeopleRow,
+                    settings,
+                    key: 'person-ids',
+                    emptyText: _('Everyone (no filter)'),
+                    gettext: _,
+                }),
+                new PeoplePicker({
+                    expander: excludePeopleRow,
+                    settings,
+                    key: 'excluded-person-ids',
+                    emptyText: _('Nobody'),
+                    gettext: _,
+                }),
+            ],
+            generation: 0,
+        };
+
         // Connect test connection button
         testConnectionButton.connect('clicked', () => {
             testConnectionButton.sensitive = false;
@@ -353,6 +401,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                     
                     // Automatically refresh albums on successful connection
                     this._refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token);
+                    this._refreshPeople(settings, peopleUi, token);
                 } else {
                     connectionStatusIcon.icon_name = 'dialog-error-symbolic';
                     testConnectionRow.subtitle = message || _('Connection failed');
@@ -370,6 +419,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
                 
                 if (success) {
                     this._refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token);
+                    this._refreshPeople(settings, peopleUi, token);
                 } else {
                     albumRow.subtitle = message || _('Connection failed');
                 }
@@ -377,7 +427,7 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
         
         // Load albums asynchronously
-        this._loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection);
+        this._loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection, peopleUi);
 
         // About section: version and useful links
         const aboutGroup = new Adw.PreferencesGroup({
@@ -622,14 +672,83 @@ export default class ImmichWallpaperPreferences extends ExtensionPreferences {
         });
     }
 
-    _loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection) {
+    _loadAlbums(settings, albumModel, albumRow, albumIds, albumSelection, peopleUi) {
         // Use _testConnection to authenticate and then _refreshAlbums to load albums
         this._testConnection(settings, (success, message, token) => {
             if (success) {
                 this._refreshAlbums(settings, albumModel, albumRow, albumIds, albumSelection, token);
+                this._refreshPeople(settings, peopleUi, token);
             } else {
                 albumRow.subtitle = message || _('Please configure server connection first');
+                this._setPeopleStatus(peopleUi, albumRow.subtitle);
             }
         });
+    }
+
+    _setPeopleStatus(peopleUi, text) {
+        for (const picker of peopleUi.pickers) {
+            picker.comboRow.subtitle = text;
+        }
+    }
+
+    _refreshPeople(settings, peopleUi, token) {
+        let serverUrl = settings.get_string('server-url');
+        if (serverUrl.endsWith('/')) {
+            serverUrl = serverUrl.slice(0, -1);
+        }
+
+        // Ignore responses of an older refresh (e.g. "Test" clicked twice)
+        const generation = ++peopleUi.generation;
+        this._setPeopleStatus(peopleUi, _('Loading people...'));
+
+        const session = new Soup.Session();
+        const people = [];
+
+        // /api/people is paginated. Hidden people are included on purpose:
+        // hiding only removes them from Immich's people page, their photos
+        // still show up everywhere else.
+        const fetchPage = (pageNumber) => {
+            const url = `${serverUrl}/api/people?withHidden=true&size=1000&page=${pageNumber}`;
+            const message = Soup.Message.new('GET', url);
+            const headers = message.get_request_headers();
+            if (settings.get_string('auth-type') === 'api-key') {
+                headers.append('x-api-key', token);
+            } else {
+                headers.append('Authorization', `Bearer ${token}`);
+            }
+
+            session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, result) => {
+                if (generation !== peopleUi.generation) {
+                    return;
+                }
+
+                try {
+                    const bytes = session.send_and_read_finish(result);
+
+                    if (message.get_status() !== 200) {
+                        this._setPeopleStatus(peopleUi, _('Failed to load people'));
+                        return;
+                    }
+
+                    const response = JSON.parse(new TextDecoder().decode(bytes.get_data()));
+                    people.push(...(response.people || []));
+
+                    if (response.hasNextPage && pageNumber < 50) {
+                        fetchPage(pageNumber + 1);
+                        return;
+                    }
+
+                    for (const picker of peopleUi.pickers) {
+                        picker.setPeople(people);
+                    }
+                    this._setPeopleStatus(peopleUi, _('Type to search'));
+                } catch (error) {
+                    console.error('Error loading people:', error);
+                    this._setPeopleStatus(peopleUi, _('Error loading people'));
+                }
+            });
+        };
+
+        fetchPage(1);
     }
 }

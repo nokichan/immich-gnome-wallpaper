@@ -11,6 +11,8 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
+import {buildSearchBodies, mergeAssets} from './peopleFilter.js';
+
 const DEBUG = false;
 
 function _log(msg) {
@@ -437,23 +439,45 @@ export default class ImmichWallpaperExtension extends Extension {
             serverUrl = serverUrl.slice(0, -1);
         }
         
-        let albumId = this._settings.get_string('album-id');
         let apiUrl = `${serverUrl}/api/search/random`;
+        let excludedPersonIds = this._settings.get_strv('excluded-person-ids');
         
         _log(`Immich Wallpaper: API URL: ${apiUrl}`);
         
-        let requestBody = {
-            type: 'IMAGE',
+        let bodies = buildSearchBodies({
+            albumId: this._settings.get_string('album-id'),
+            personIds: this._settings.get_strv('person-ids'),
+            requireAll: this._settings.get_boolean('require-all-people'),
+            excludedPersonIds,
             size: 100,
-        };
+        });
         
-        if (albumId && albumId.trim() !== '') {
-            requestBody.albumIds = [albumId.trim()];
-            _log(`Immich Wallpaper: Fetching random photos from album ${albumId}`);
-        } else {
-            _log(`Immich Wallpaper: Fetching random photos from all albums`);
-        }
+        _log(`Immich Wallpaper: Fetching random photos with ${bodies.length} request(s)`);
         
+        let results = new Array(bodies.length);
+        let pending = bodies.length;
+        
+        bodies.forEach((body, i) => {
+            this._searchRandom(apiUrl, body, (assets) => {
+                results[i] = assets;
+                pending--;
+                if (pending > 0)
+                    return;
+                
+                this._photoList = mergeAssets(results, excludedPersonIds);
+                _log(`Immich Wallpaper: Fetched ${this._photoList.length} photos`);
+                
+                if (this._photoList.length > 0) {
+                    this._validateCurrentIndex();
+                    callback();
+                } else {
+                    _log('Immich Wallpaper: No photos available');
+                }
+            });
+        });
+    }
+
+    _searchRandom(apiUrl, requestBody, callback) {
         let message = Soup.Message.new('POST', apiUrl);
         let headers = message.get_request_headers();
         this._addAuthHeader(headers, this._accessToken);
@@ -477,20 +501,10 @@ export default class ImmichWallpaperExtension extends Extension {
                     if (message.get_status() === 200) {
                         let response = JSON.parse(responseText);
                         if (Array.isArray(response)) {
-                            this._photoList = response.filter(asset => asset.type === 'IMAGE');
-                        } else {
-                            _log(`Immich Wallpaper: Unexpected response format`);
-                            this._photoList = [];
+                            callback(response);
+                            return;
                         }
-                        
-                        _log(`Immich Wallpaper: Fetched ${this._photoList.length} photos`);
-                        
-                        if (this._photoList.length > 0) {
-                            this._validateCurrentIndex();
-                            callback();
-                        } else {
-                            _log('Immich Wallpaper: No photos available');
-                        }
+                        _log(`Immich Wallpaper: Unexpected response format`);
                     } else {
                         _log(`Immich Wallpaper: Failed to fetch photos with status ${message.get_status()}`);
                         _log(`Immich Wallpaper: Response: ${responseText.substring(0, 200)}`);
@@ -498,6 +512,7 @@ export default class ImmichWallpaperExtension extends Extension {
                 } catch (e) {
                     _log(`Immich Wallpaper: Error fetching photos: ${e}`);
                 }
+                callback([]);
             }
         );
     }

@@ -10,6 +10,7 @@ A GNOME Shell extension that automatically sets your desktop wallpaper using pho
 - 📍 **Location display**: Shows photo location from EXIF data with clickable map link (optional)
 - 🗺️ **Map integration**: Open photo locations in OpenStreetMap or Google Maps
 - 📁 **Album selection**: Use photos from a specific album or all your albums
+- 👥 **People filter**: Only show photos of specific people, optionally all of them together, and hide photos of others (similar to [immich-kiosk](https://github.com/damongolding/immich-kiosk))
 - 🔄 **Random rotation**: Photos are displayed in random order
 - ⏱️ **Configurable interval**: Set how often to change the wallpaper (minimum 60 seconds)
 - 🔐 **Secure authentication**: Secure connection to your Immich server using email and password
@@ -97,6 +98,13 @@ gnome-extensions prefs immich-wallpaper@nokichan.github.io
      - The extension will automatically load your available albums
      - Select "All Photos (no filter)" to use random photos from all albums
      - Select any specific album to only use photos from that album
+   - **People Filter**: Pick people from a searchable dropdown (type a name to filter it) or add them by ID
+     - **Show Photos Of**: Only use photos containing any of the selected people (nothing selected = no filter)
+     - **Require All Selected People**: Only use photos where all selected people appear together
+     - **Hide Photos Of**: Never use photos containing one of these people
+     - People hidden in Immich are listed too (marked "hidden in Immich"): hiding a person only removes them from Immich's people page, their photos are still used
+     - People without a name can be added with **Add by ID**; pasting the URL of their Immich people page works too
+     - The people filter can be combined with an album
 
 3. Save the configuration and the extension will start working automatically.
 
@@ -148,6 +156,8 @@ immich-wallpaper@nokichan.github.io/
 ├── extension.js          # Main extension logic
 ├── prefs.js             # Preferences interface
 ├── albumSelection.js    # Album selection helper
+├── peopleFilter.js      # People filter (search requests + result filtering)
+├── peoplePicker.js      # People picker widget for the preferences
 ├── metadata.json        # Extension metadata
 ├── schemas/
 │   └── org.gnome.shell.extensions.immich-wallpaper.gschema.xml
@@ -210,6 +220,7 @@ The extension uses the following Immich API endpoints:
 - `GET /api/users/me` - Validate API key
 - `POST /api/search/random` - Get random photos list
 - `GET /api/albums` - Get user's albums
+- `GET /api/people` - Get user's people (for the people filter)
 - `GET /api/assets/{id}` - Get photo metadata
 - `GET /api/assets/{id}/thumbnail?size=preview` - Download photo (preview quality)
 - `GET /api/assets/{id}/original` - Download photo (original quality)

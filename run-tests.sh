@@ -9,7 +9,8 @@
 #   4. GSettings schema compilation (glib-compile-schemas --strict)
 #   5. Translation checks (msgfmt)
 #   6. Static analysis with shexli on the packaged zip (optional)
-#   7. GTK regression tests in tests/ (gjs, uses xvfb-run when needed)
+#   7. Unit tests in tests/ (gjs)
+#   8. GTK regression tests in tests/ (gjs, uses xvfb-run when needed)
 #
 # Missing optional tools are reported as "skip", never as failures.
 #
@@ -27,7 +28,7 @@ ok()   { echo "ok - $1"; PASS=$((PASS + 1)); }
 fail() { echo "not ok - $1"; FAIL=$((FAIL + 1)); }
 skip() { echo "skip - $1"; SKIP=$((SKIP + 1)); }
 
-JS_FILES=(extension.js prefs.js albumSelection.js)
+JS_FILES=(extension.js prefs.js albumSelection.js peopleFilter.js peoplePicker.js)
 
 # ---------------------------------------------------------------- JS syntax
 if command -v node >/dev/null 2>&1; then
@@ -118,23 +119,38 @@ else
     skip "shexli static analysis (shexli or python3 not installed)"
 fi
 
+# -------------------------------------------------------------- unit tests
+if command -v gjs >/dev/null 2>&1; then
+    if gjs -m tests/test-people-filter.js; then
+        PASS=$((PASS + 1))
+    else
+        FAIL=$((FAIL + 1))
+    fi
+else
+    skip "people filter tests (gjs not installed)"
+fi
+
 # -------------------------------------------------------------- GTK tests
-GJS_TEST=(gjs -m tests/test-album-selection.js)
+GTK_TESTS=(tests/test-album-selection.js tests/test-people-picker.js)
+
+run_gtk_test() {
+    if "$@"; then
+        PASS=$((PASS + 1))
+    else
+        FAIL=$((FAIL + 1))
+    fi
+}
 
 if ! command -v gjs >/dev/null 2>&1; then
     skip "GTK regression tests (gjs not installed)"
 elif command -v xvfb-run >/dev/null 2>&1; then
-    if xvfb-run -a "${GJS_TEST[@]}"; then
-        PASS=$((PASS + 1))
-    else
-        FAIL=$((FAIL + 1))
-    fi
+    for test in "${GTK_TESTS[@]}"; do
+        run_gtk_test xvfb-run -a gjs -m "$test"
+    done
 elif [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; then
-    if "${GJS_TEST[@]}"; then
-        PASS=$((PASS + 1))
-    else
-        FAIL=$((FAIL + 1))
-    fi
+    for test in "${GTK_TESTS[@]}"; do
+        run_gtk_test gjs -m "$test"
+    done
 else
     skip "GTK regression tests (no display and xvfb-run not installed)"
 fi

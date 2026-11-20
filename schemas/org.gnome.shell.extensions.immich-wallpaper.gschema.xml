@@ -42,6 +42,21 @@
       <summary>Album ID</summary>
       <description>ID of the album to use for wallpapers (empty = all albums)</description>
     </key>
+    <key name="person-ids" type="as">
+      <default>[]</default>
+      <summary>People</summary>
+      <description>IDs of the people whose photos are shown (empty = no person filter)</description>
+    </key>
+    <key name="require-all-people" type="b">
+      <default>false</default>
+      <summary>Require All People</summary>
+      <description>Only show photos containing all selected people together instead of any of them</description>
+    </key>
+    <key name="excluded-person-ids" type="as">
+      <default>[]</default>
+      <summary>Excluded People</summary>
+      <description>IDs of the people whose photos are never shown</description>
+    </key>
     <key name="picture-options" type="s">
       <default>'zoom'</default>
       <summary>Picture Options</summary>
